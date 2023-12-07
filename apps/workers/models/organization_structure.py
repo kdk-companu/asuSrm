@@ -29,10 +29,10 @@ class Subdivision(models.Model):
         verbose_name_plural = 'Управления/Подразделения'
         ordering = ['pk']
         permissions = (
-            ('subdivision_add', 'Управление/Подразделение добавить.'),
-            ('subdivision_change', 'Управление/Подразделение редактировать.'),
-            ('subdivision_delete', 'Управление/Подразделение удалить.'),
-            ('subdivision_view', 'Управление/Подразделение просмотреть.'),
+            ('subdivision_add', 'Добавить.'),
+            ('subdivision_change', 'Редактировать.'),
+            ('subdivision_delete', 'Удалить.'),
+            ('subdivision_view', 'Просмотреть.'),
         )
 
 
@@ -59,10 +59,10 @@ class Department(models.Model):
         verbose_name_plural = 'Структура/Отделы'
         ordering = ['pk']
         permissions = (
-            ('department_add', 'Структура/Отдел добавить.'),
-            ('department_change', 'Структура/Отдел редактировать.'),
-            ('department_delete', 'Структура/Отдел удалить.'),
-            ('department_view', 'Структура/Отдел просмотреть.'),
+            ('department_add', 'Добавить.'),
+            ('department_change', 'Редактировать.'),
+            ('department_delete', 'Удалить.'),
+            ('department_view', 'Просмотреть.'),
         )
 
 
@@ -91,8 +91,8 @@ class Chief(models.Model):
         verbose_name_plural = 'Должности'
         ordering = ['rights']
         permissions = (
-            ('chief_add', 'Должность добавить.'),
-            ('chief_change', 'Должность редактировать.'),
-            ('chief_delete', 'Должность удалить.'),
-            ('chief_view', 'Должность просмотреть.'),
+            ('chief_add', 'Добавить.'),
+            ('chief_change', 'Редактировать.'),
+            ('chief_delete', 'Удалить.'),
+            ('chief_view', 'Просмотреть.'),
         )
