@@ -1,5 +1,8 @@
 import os
 import datetime
+from uuid import uuid4
+
+from PIL import Image
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
@@ -12,13 +15,17 @@ from django.urls import reverse
 from django.dispatch import receiver
 from apps.workers.models import Organization, Subdivision, Department, Chief
 from apps.workers.models.managers import UserManager
-from PIL import Image
-
 
 # Аватарки
-def user_path(instance, filename):
-    return 'user/{0}/images/{1}'.format(instance.slug, filename)
+from library.files import Files
+from library.image import ImagesEdit
 
+
+def user_path(instance, filename):
+    return 'user/{0}/images/{1}'.format(instance.pk, filename)
+
+
+# Путь хранения пользовательских файлов
 
 class User(AbstractBaseUser, PermissionsMixin):
     """Сотрудники переписанная от User
@@ -77,38 +84,17 @@ class User(AbstractBaseUser, PermissionsMixin):
         )
 
     def save(self, *args, **kwargs):
-        # Создаем slug
-        date_add = datetime.date.today().strftime("%d-%m-%Y")
-        slug_name = "{0}{1}{2}{3}".format(self.surname,self.name,self.patronymic,date_add)
-        self.slug = slugify(translit(slug_name, 'ru', reversed=True))
+        # Создаем slug один раз при добавлении пользователя
+        if not self.slug:
+            date_add = datetime.date.today().strftime("%d-%m-%Y")
+            slug_name = "{0}{1}{2}{3}".format(self.surname, self.name, self.patronymic, date_add)
+            self.slug = slugify(translit(slug_name, 'ru', reversed=True))
         # Сохранение фотографий
         if self.image:
-            # Полный путь к папкам
-            folder_user = "media/user/" + str(self.pk)
-            folder_save = "media/user/" + str(self.pk) + "/images/"
-            url_save = "user/" + str(self.pk) + "/images/"
-            # Создание папок
-            if not os.path.isdir(folder_user):
-                os.mkdir(folder_user)
-            if not os.path.isdir(folder_save):
-                os.mkdir(folder_save)
             # Обработка изображнеий
-            img = Image.open(self.image)
-            width = self.image.width
-            height = self.image.height
-            min_size = min(width, height)
-            # Обрезка картинки до квадрата
-            img = img.crop((0, 0, min_size, min_size))
-            # Первое уменьшение
-            oputput_size = (300, 300)
-            img.thumbnail(oputput_size)
-            img.save(folder_save + "photo.jpg")
-            self.image = url_save + "photo.jpg"
-            # Второе уменьшение
-            oputput_size = (128, 128)
-            img.thumbnail(oputput_size)
-            img.save(folder_save + "smol_photo.jpg")
-            self.image_smol = url_save + "smol_photo.jpg"
+            image_Save = ImagesEdit.add_avatar(self.image, str(self.pk))
+            self.image = image_Save['image']
+            self.image_smol = image_Save['images_smol']
 
         super().save()
 
@@ -131,10 +117,10 @@ class User_Basic(models.Model):
                                                 verbose_name='Отдел в организации')
     actual_subdivision = models.ForeignKey(Subdivision, on_delete=models.PROTECT, blank=True,
                                            null=True, related_name='actual_subdivision',
-                                           verbose_name='Управление в организации')
+                                           verbose_name='Фактическое Управление')
     actual_department = models.ForeignKey(Department, on_delete=models.PROTECT, blank=True,
                                           null=True, related_name='actual_department',
-                                          verbose_name='Отдел в организации')
+                                          verbose_name='Фактический отдел')
     chief = models.ForeignKey(Chief, on_delete=models.PROTECT, blank=True,
                               null=True, verbose_name='Должность')
     date_employment = models.DateField(verbose_name='Дата трудоустройства', null=True, blank=True)
@@ -166,8 +152,14 @@ class User_Basic(models.Model):
             User_Basic.objects.create(user=instance)
 
 
+# Путь хранения пользовательских файлов
+def closed_path(instance, filename):
+    upload_to = str('user/{0}/files/'.format(instance.user.pk))
+    return os.path.join(upload_to, Files.random_name(filename))
+
+
 class User_Closed(models.Model):
-    '''Закрытая информация о сотрудники'''
+    """Закрытая информация о сотрудники"""
     user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='ФИО')
     organization_order_of_employment = models.CharField(max_length=255, verbose_name='Приказ о трудоустройстве',
                                                         null=True, blank=True)
@@ -180,25 +172,24 @@ class User_Closed(models.Model):
     passport_place_of_issue = models.CharField(max_length=255, verbose_name='Паспорт Код подразделения', null=True,
                                                blank=True)
     passport_registration = models.CharField(max_length=255, verbose_name='Паспорт Место выдачи', null=True, blank=True)
-    passport_of_residence = models.CharField(max_length=255, verbose_name='Паспорт Место жительства', null=True,
+    passport_of_residence = models.CharField(max_length=255, verbose_name='Паспорт Прописка', null=True,
                                              blank=True)
+    passport_scan = models.FileField(upload_to=closed_path, verbose_name='Паспорт скан', null=True,
+                                     blank=True)
+    snils_number = models.CharField(max_length=255, verbose_name='СНИЛС номер', null=True,
+                                    blank=True)
+    snils_scan = models.FileField(upload_to=closed_path, verbose_name='СНИЛС скан', null=True,
+                                  blank=True)
+    inn_number = models.CharField(max_length=255, verbose_name='Инн номер', null=True,
+                                  blank=True)
+    inn_scan = models.FileField(upload_to=closed_path, verbose_name='Инн скан', null=True,
+                                blank=True)
+    archive_documents_employment = models.FileField(upload_to=closed_path,
+                                                    verbose_name='Пакет документов при трудоустройстве',
+                                                    null=True, blank=True)
 
-    # passport_scan = models.FileField(upload_to=user_directory_path_save, verbose_name='Паспорт скан', null=True,
-    #                                  blank=True)
-    # snils_number = models.CharField(max_length=255, verbose_name='СНИЛС номер', null=True,
-    #                                 blank=True)
-    # snils_scan = models.FileField(upload_to=user_directory_path_save, verbose_name='СНИЛС скан', null=True,
-    #                               blank=True)
-    # inn_number = models.CharField(max_length=255, verbose_name='Инн номер', null=True,
-    #                               blank=True)
-    # inn_scan = models.FileField(upload_to=user_directory_path_save, verbose_name='Инн скан', null=True,
-    #                             blank=True)
-    # archive_documents_employment = models.FileField(upload_to=user_directory_path_save,
-    #                                                 verbose_name='Пакет документов при трудоустройстве',
-    #                                                 null=True, blank=True)
-    #
-    # signature_example = models.ImageField(upload_to=user_directory_path_files, verbose_name='Пример подписи', null=True,
-    #                                       blank=True)
+    signature_example = models.ImageField(upload_to=closed_path, verbose_name='Пример подписи', null=True,
+                                          blank=True)
 
     def __str__(self):
         return '{0} {1} {2}'.format(self.user.surname, self.user.name, self.user.patronymic)
@@ -221,56 +212,13 @@ class User_Closed(models.Model):
 
     def save(self, *args, **kwargs):
         # # Загрузка образца подписи
-        # if self.signature_example and not '/' in str(self.signature_example):
-        #     try:
-        #         file_remove = User_Closed_Information.objects.get(user__slug=self.user.slug)
-        #         file_remove.signature_example.delete(save=False)
-        #     except:
-        #         pass
-        #     # Полный путь к папкам
-        #     folder_user = "media/user/" + str(self.user.pk)
-        #     folder_save = "media/user/" + str(self.user.pk) + "/files/"
-        #     url_save = "user/" + str(self.user.pk) + "/files/"
-        #     # Создание папок
-        #     if not os.path.isdir(folder_user):
-        #         os.mkdir(folder_user)
-        #     if not os.path.isdir(folder_save):
-        #         os.mkdir(folder_save)
-        #     # Обработка изображнеий
-        #     img = Image.open(self.signature_example)
-        #     width = img.size[0]
-        #     height = img.size[1]
-        #     max_size = max(width, height)
-        #     # Обрезка картинки до квадрата
-        #     img = img.crop((0, 0, 700, 350))
-        #     # Первое уменьшение
-        #     name_file = uuid4().hex + ".png"
-        #     img.save(folder_save + name_file)
-        #     self.signature_example = url_save + name_file
-        # # Загрузка паспорта
-        # if self.passport_scan and not '/' in str(self.passport_scan):
-        #     try:
-        #         passport_remove = User_Closed_Information.objects.get(user__slug=self.user.slug)
-        #         passport_remove.passport_scan.delete(save=False)
-        #     except:
-        #         pass
-        # if self.inn_scan and not '/' in str(self.inn_scan):
-        #     try:
-        #         inn_remove = User_Closed_Information.objects.get(user__slug=self.user.slug)
-        #         inn_remove.inn_scan.delete(save=False)
-        #     except:
-        #         pass
-        # if self.snils_scan and not '/' in str(self.snils_scan):
-        #     try:
-        #         snils_remove = User_Closed_Information.objects.get(user__slug=self.user.slug)
-        #         snils_remove.snils_scan.delete(save=False)
-        #     except:
-        #         pass
-        # if self.archive_documents_employment and not '/' in str(self.archive_documents_employment):
-        #     try:
-        #         archive_documents_employment_remove = User_Closed_Information.objects.get(user__slug=self.user.slug)
-        #         archive_documents_employment_remove.archive_documents_employment.delete(save=False)
-        #     except:
-        #         pass
+        if self.signature_example:
+            try:
+                file_remove = User_Closed.objects.get(user__slug=self.user.slug)
+                file_remove.signature_example.delete(save=True)
+            except:
+                pass
+
+            self.signature_example = ImagesEdit.add_signature(self.signature_example, str(self.pk))
 
         super().save()

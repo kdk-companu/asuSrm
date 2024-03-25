@@ -1,12 +1,19 @@
 import os
+from pathlib import Path
 
+import patoolib
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.models import Permission
 from django.contrib.auth.views import PasswordChangeView
 from django.db.models import Q
-from django.http import HttpResponseRedirect
-from django.urls import reverse
-from django.views.generic import ListView, DetailView, CreateView, UpdateView
-from apps.workers.forms import Search_Filter, Search_User_Filter, Workers_Add_Form
+from django.http import HttpResponseRedirect, HttpResponse
+from django.shortcuts import redirect
+from django.urls import reverse, reverse_lazy
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from apps.workers.forms import Search_Filter, Search_User_Filter, Workers_Add_Form, Workers_Form_Upload_Images, \
+    Workers_Form_PasswordChange, Workers_Form_Change, Workers_Form_Basic_Change, Workers_Form_Closed_Change, test3_form, \
+    Workers_Form_Upload_Passport, Workers_Form_Upload_Snils, Workers_Form_Upload_Inn, Workers_Form_Upload_Archive, \
+    Workers_Form_Upload_Signature
 from apps.workers.models import User, User_Basic, User_Closed
 from django.contrib import messages
 
@@ -82,7 +89,6 @@ class Workers_Filter(LoginRequiredMixin, ViewsPermissionsMixin, ListView):
                     if chief != '':
                         filters |= Q(**{f'{"chief"}': chief})
 
-
         filters &= Q(**{f'{"user__employee"}': "employee_current"})
 
         return super().get_queryset().filter(filters).select_related(
@@ -92,7 +98,7 @@ class Workers_Filter(LoginRequiredMixin, ViewsPermissionsMixin, ListView):
             'actual_subdivision',
             'actual_department',
             'chief',
-            )
+        )
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -117,7 +123,7 @@ class Workers_Filter(LoginRequiredMixin, ViewsPermissionsMixin, ListView):
 class Workers_Add(LoginRequiredMixin, ViewsPermissionsMixin, CreateView):
     """Добавление нового сотрудника"""
     model = User
-    template_name = 'workers/workers_add.html'
+    template_name = 'workers/workers_settings/workers_add.html'
     form_class = Workers_Add_Form
     # Права пользователя
     login_url = 'login'
@@ -161,7 +167,7 @@ class Workers_DetailView(LoginRequiredMixin, ViewsPermissionsMixin, DetailView):
     model = User
     template_name = 'workers/workers_views.html'
     slug_url_kwarg = 'workers_slug'
-    context_object_name = 'workers'
+    context_object_name = 'worker'
     # Права пользователя
     login_url = 'login'
     permission_required = 'workers.user_view'
@@ -178,30 +184,31 @@ class Workers_DetailView(LoginRequiredMixin, ViewsPermissionsMixin, DetailView):
 
         return context
 
-# class Workers_Change_Password(LoginRequiredMixin, PasswordChangeView):
-#     '''Изменить только сам сотрудник'''
-#     template_name = 'workers/workers_password_change.html'
-#     form_class = Workers_Form_PasswordChange
-#     login_url = 'login'
-#     redirect_field_name = ''
+
+class Workers_Change_Password(LoginRequiredMixin, PasswordChangeView):
+    """Изменить только сам сотрудник"""
+    template_name = 'workers/workers_settings/workers_password_change.html'
+    form_class = Workers_Form_PasswordChange
+    login_url = 'login'
+    redirect_field_name = ''
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        return self.render_to_response(context)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Изменить пароль.'
+        return context
+
+    def form_valid(self, form):
+        self.object = form.save()
+
+        return HttpResponseRedirect('')
+
+
 #
-#     def get(self, request, *args, **kwargs):
-#         context = self.get_context_data(**kwargs)
-#         return self.render_to_response(context)
-#
-#     def get_context_data(self, *, object_list=None, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         project_menus = self.get_user_context(title='Изменения пароля')
-#         context = dict(list(context.items()) + list(project_menus.items()))
-#         return context
-#
-#     def form_valid(self, form):
-#         self.object = form.save()
-#
-#         return HttpResponseRedirect('')
-#
-#
-# class Workers_Update_Password(LoginRequiredMixin, ViewsPermissionsMixin,  UpdateView):
+# class Workers_Update_Password(LoginRequiredMixin, ViewsPermissionsMixin, DataMixin, UpdateView):
 #     '''Изменить только по правам'''
 #     model = User
 #     template_name = 'workers/workers_password_update.html'
@@ -231,3 +238,437 @@ class Workers_DetailView(LoginRequiredMixin, ViewsPermissionsMixin, DetailView):
 #         self.object = form.save()
 #         messages.success(self.request, 'Данные сохранены успешно')
 #         return HttpResponseRedirect(self.get_success_url())
+
+
+class User_Change(LoginRequiredMixin, ViewsPermissionsMixin, UpdateView):
+    model = User
+    template_name = 'workers/workers_settings/workers_change.html'
+
+    form_class = Workers_Form_Change
+    login_url = 'login'
+    permission_required = 'workers.user_change'
+
+    # Управление по slug
+    def get_object(self, queryset=None):
+        instance = User.objects.get(slug=self.kwargs.get('workers_slug', ''))
+        return instance
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Редактирование пользователя'
+        context['user'] = User.objects.get(slug=self.kwargs.get('workers_slug', ''))
+        return context
+
+    def get_success_url(self):
+        messages.success(self.request, "Данные сохранены успешно")
+        return reverse('workers_change', kwargs={'workers_slug': self.kwargs['workers_slug']})
+
+
+class User_Basic_Change(LoginRequiredMixin, ViewsPermissionsMixin, UpdateView):
+    model = User_Basic
+    template_name = 'workers/workers_settings/workers_change_basic_detail.html'
+
+    form_class = Workers_Form_Basic_Change
+    login_url = 'login'
+    permission_required = 'workers.user_basic_change'
+
+    # Управление по slug
+    def get_object(self, queryset=None):
+        instance = User_Basic.objects.get(user__slug=self.kwargs.get('workers_slug', ''))
+        return instance
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Редактирование. Базовая информация.'
+        context['user'] = User.objects.get(slug=self.kwargs.get('workers_slug', ''))
+        return context
+
+    def get_success_url(self):
+        messages.success(self.request, "Данные сохранены успешно")
+        return reverse('workers_basic_change', kwargs={'workers_slug': self.kwargs['workers_slug']})
+
+
+class User_Closed_Change(LoginRequiredMixin, ViewsPermissionsMixin, UpdateView):
+    model = User_Closed
+    template_name = 'workers/workers_settings/workers_change_closed_detail.html'
+
+    form_class = Workers_Form_Closed_Change
+    login_url = 'login'
+    permission_required = 'workers.user_closed_change'
+
+    # Управление по slug
+    def get_object(self, queryset=None):
+        instance = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug', ''))
+        return instance
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Редактирование. Закрытая информация.'
+        context['user'] = User.objects.get(slug=self.kwargs.get('workers_slug', ''))
+        return context
+
+    def get_success_url(self):
+        messages.success(self.request, "Данные сохранены успешно")
+        return reverse('workers_closed_change', kwargs={'workers_slug': self.kwargs['workers_slug']})
+
+
+class Workers_Image(UpdateView):  # LoginRequiredMixin, ViewsPermissionsMixin,
+    """Добавление аватарок на сайт"""
+    model = User
+    template_name = 'workers/workers_settings/workers_images.html'
+    form_class = Workers_Form_Upload_Images
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+        form_check = Workers_Form_Upload_Images(request.POST, request.FILES)
+        if form.is_valid() and len(form_check.files.dict()):
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    # Управление по slug
+    def get_object(self, queryset=None):
+        instance = User.objects.get(slug=self.kwargs.get('workers_slug', ''))
+        return instance
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Загрузка аватарки.'
+        context['workers'] = User.objects.get(slug=self.kwargs.get('workers_slug'))
+        return context
+
+    def get_success_url(self):
+        messages.success(self.request, "Данные сохранены успешно")
+        return reverse('workers_image', kwargs={'workers_slug': self.kwargs['workers_slug']})
+
+
+class Workers_Passport(UpdateView):  # LoginRequiredMixin, ViewsPermissionsMixin,
+    """Добавление паспорта на сайт"""
+    model = User_Closed
+    template_name = 'workers/workers_settings/workers_passport.html'
+    form_class = Workers_Form_Upload_Passport
+
+    # Управление по slug
+    def get_object(self, queryset=None):
+        instance = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug', ''))
+        return instance
+
+    def form_valid(self, form):
+        # Удаление старых файлов
+        file = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug'))
+        file.passport_scan.delete(save=True)
+        # Сохранение формы
+        self.object = form.save()
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Загрузка паспорта.'
+        context['workers'] = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug'))
+        return context
+
+    def get_success_url(self):
+        messages.success(self.request, "Данные сохранены успешно")
+        return reverse('workers_passport', kwargs={'workers_slug': self.kwargs['workers_slug']})
+
+
+class Workers_Passport_Delete(DetailView):  # LoginRequiredMixin, ViewsPermissionsMixin,
+    """Удаление паспорта """
+    model = User_Closed
+    template_name = 'typical/file_delete.html'
+
+    def post(self, request, *args, **kwargs):
+        # Удаляем паспорт
+        if request.POST:
+            if request.POST.get("delete"):
+                if request.POST.get("delete") == "yes":
+                    file = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug'))
+                    file.passport_scan.delete(save=True)
+        return redirect('workers_detail', *args, **kwargs)
+
+    def form_valid(self, form):
+        # Удаление старых файлов
+        file = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug'))
+        file.passport_scan.delete(save=True)
+        # Сохранение формы
+        self.object = form.save()
+        return super().form_valid(form)
+
+    # Управление по slug
+    def get_object(self, queryset=None):
+        instance = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug', ''))
+        return instance
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Удаление паспорта.'
+        context['info'] = 'паспорт.'
+        context['file'] = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug'))
+        return context
+
+
+class Workers_Snils(UpdateView):  # LoginRequiredMixin, ViewsPermissionsMixin,
+    """Добавление снилс на сайт"""
+    model = User_Closed
+    template_name = 'workers/workers_settings/workers_snils.html'
+    form_class = Workers_Form_Upload_Snils
+
+    # Управление по slug
+    def get_object(self, queryset=None):
+        instance = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug', ''))
+        return instance
+
+    def form_valid(self, form):
+        # Удаление старых файлов
+        file = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug'))
+        file.snils_scan.delete(save=True)
+        # Сохранение формы
+        self.object = form.save()
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Загрузка снилс.'
+        context['workers'] = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug'))
+        return context
+
+    def get_success_url(self):
+        messages.success(self.request, "Данные сохранены успешно")
+        return reverse('workers_snils', kwargs={'workers_slug': self.kwargs['workers_slug']})
+
+
+class Workers_Snils_Delete(DetailView):  # LoginRequiredMixin, ViewsPermissionsMixin,
+    """Удаление снилс"""
+    model = User_Closed
+    template_name = 'typical/file_delete.html'
+
+    def post(self, request, *args, **kwargs):
+        # Удаляем паспорт
+        if request.POST:
+            if request.POST.get("delete"):
+                if request.POST.get("delete") == "yes":
+                    file = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug'))
+                    file.snils_scan.delete(save=True)
+        return redirect('workers_detail', *args, **kwargs)
+
+    # Управление по slug
+    def get_object(self, queryset=None):
+        instance = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug', ''))
+        return instance
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Удаление снилс.'
+        context['info'] = 'снилс.'
+        context['file'] = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug'))
+        return context
+
+
+class Workers_Inn(UpdateView):  # LoginRequiredMixin, ViewsPermissionsMixin,
+    """Добавление инн на сайт"""
+    model = User_Closed
+    template_name = 'workers/workers_settings/workers_inn.html'
+    form_class = Workers_Form_Upload_Inn
+
+    # Управление по slug
+    def get_object(self, queryset=None):
+        instance = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug', ''))
+        return instance
+
+    def form_valid(self, form):
+        # Удаление старых файлов
+        file = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug'))
+        file.inn_scan.delete(save=True)
+        # Сохранение формы
+        self.object = form.save()
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Загрузка инн.'
+        context['workers'] = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug'))
+        return context
+
+    def get_success_url(self):
+        messages.success(self.request, "Данные сохранены успешно")
+        return reverse('workers_inn', kwargs={'workers_slug': self.kwargs['workers_slug']})
+
+
+class Workers_Inn_Delete(DetailView):  # LoginRequiredMixin, ViewsPermissionsMixin,
+    """Удаление инн"""
+    model = User_Closed
+    template_name = 'typical/file_delete.html'
+
+    def post(self, request, *args, **kwargs):
+        # Удаляем инн
+        if request.POST:
+            if request.POST.get("delete"):
+                if request.POST.get("delete") == "yes":
+                    file = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug'))
+                    file.inn_scan.delete(save=True)
+        return redirect('workers_detail', *args, **kwargs)
+
+    # Управление по slug
+    def get_object(self, queryset=None):
+        instance = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug', ''))
+        return instance
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Удаление инн.'
+        context['info'] = 'инн.'
+        context['file'] = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug'))
+        return context
+
+
+class Workers_Archive(UpdateView):  # LoginRequiredMixin, ViewsPermissionsMixin,
+    """Добавление архива на сайт"""
+    model = User_Closed
+    template_name = 'workers/workers_settings/workers_archive.html'
+    form_class = Workers_Form_Upload_Archive
+
+    # Управление по slug
+    def get_object(self, queryset=None):
+        instance = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug', ''))
+        return instance
+
+    def form_valid(self, form):
+        # Удаление старых файлов
+        file = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug'))
+        file.archive_documents_employment.delete(save=True)
+        # Сохранение формы
+        self.object = form.save()
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Загрузка архива.'
+        context['workers'] = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug'))
+        return context
+
+    def get_success_url(self):
+        messages.success(self.request, "Данные сохранены успешно")
+        return reverse('workers_archive', kwargs={'workers_slug': self.kwargs['workers_slug']})
+
+
+class Workers_Archive_Delete(DetailView):  # LoginRequiredMixin, ViewsPermissionsMixin,
+    """Удаление архива"""
+    model = User_Closed
+    template_name = 'typical/file_delete.html'
+
+    def post(self, request, *args, **kwargs):
+        # Удаляем архив
+        if request.POST:
+            if request.POST.get("delete"):
+                if request.POST.get("delete") == "yes":
+                    file = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug'))
+                    file.archive_documents_employment.delete(save=True)
+        return redirect('workers_detail', *args, **kwargs)
+
+    # Управление по slug
+    def get_object(self, queryset=None):
+        instance = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug', ''))
+        return instance
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Удаление архива.'
+        context['info'] = 'архив.'
+        context['file'] = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug'))
+        return context
+
+
+class Workers_Signature(UpdateView):  # LoginRequiredMixin, ViewsPermissionsMixin,
+    """Добавление подписи на сайт"""
+    model = User_Closed
+    template_name = 'workers/workers_settings/workers_signature.html'
+    form_class = Workers_Form_Upload_Signature
+
+    # Управление по slug
+    def get_object(self, queryset=None):
+        instance = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug', ''))
+        return instance
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Загрузка подписи.'
+        context['workers'] = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug'))
+        return context
+
+    def get_success_url(self):
+        messages.success(self.request, "Данные сохранены успешно")
+        return reverse('workers_signature', kwargs={'workers_slug': self.kwargs['workers_slug']})
+
+
+class Workers_Signature_Delete(DetailView):  # LoginRequiredMixin, ViewsPermissionsMixin,
+    """Удаление подписи"""
+    model = User_Closed
+    template_name = 'typical/file_delete.html'
+
+    def post(self, request, *args, **kwargs):
+        # Удаляем архив
+        if request.POST:
+            if request.POST.get("delete"):
+                if request.POST.get("delete") == "yes":
+                    file = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug'))
+                    file.signature_example.delete(save=True)
+        return redirect('workers_detail', *args, **kwargs)
+
+    # Управление по slug
+    def get_object(self, queryset=None):
+        instance = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug', ''))
+        return instance
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Удаление подписи.'
+        context['info'] = 'подпись.'
+        context['file'] = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug'))
+        return context
+
+
+class TEST(ListView):
+    # Permission
+
+    model = Permission  # Все права в базе
+    template_name = 'test.html'
+    context_object_name = 'test'
+
+
+class TEST2(DetailView):
+    # Permission
+
+    model = User  # Все права в базе
+    template_name = 'test2.html'
+
+    slug_url_kwarg = 'workers_slug'
+    context_object_name = 'worker'
+
+    # Права пользователя
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Страница пользователя'
+
+        return context
+
+
+class TEST3(UpdateView):
+    model = User
+    template_name = 'test3.html'
+    # fields = '__all__'
+    form_class = test3_form
+    login_url = 'login'
+    permission_required = 'workers.user_closed_change'
+
+    # Управление по slug
+    def get_object(self, queryset=None):
+        instance = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug', ''))
+        return instance
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Редактирование. Закрытая информация.'
+        context['user'] = User.objects.get(slug=self.kwargs.get('workers_slug', ''))
+        return context

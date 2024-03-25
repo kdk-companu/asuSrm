@@ -12,13 +12,9 @@
         <div class="user-panel mt-3 pb-3 mb-3 d-flex">
             <div class="image">
                 {% if request.user.image_smol%}
-                    {% if request.user.image_smol.url %}
                     <img src="{{ request.user.image_smol.url }}" class="img-circle elevation-2">
-                    {%else%}
-                    <img src="{% static 'img/user3-128x128.jpg' %}" class="img-circle elevation-2">
-                    {% endif%}
                 {% else %}
-                    <img src="{% static 'img/user3-128x128.jpg' %}" class="img-circle elevation-2">
+                    <img src="{% static 'img/avatar_smol.jpg' %}" class="img-circle elevation-2">
                 {% endif%}
             </div>
             <div class="info">

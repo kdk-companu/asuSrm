@@ -28,7 +28,7 @@ class CustomUserAdmin(UserAdmin):
             'surname', 'name', 'patronymic')}),
         ('Контакты', {'fields': ('phone', 'email','slug')}),
 
-        ("Фото", {"fields": ("image",)}),
+        ("Фото", {"fields": ("image","image_smol")}),
         ("Организация", {"fields": ("organization",)}),
         ('Права доступа', {"fields": (
             "employee",

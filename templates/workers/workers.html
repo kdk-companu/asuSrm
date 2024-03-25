@@ -1,8 +1,6 @@
 {% extends 'base.html'%}
 {% load static %}
 {% block style %}
-<!-- Google Font: Source Sans Pro -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
 <!-- Select2 -->
 <link rel="stylesheet" href="{% static 'plugins/select2/css/select2.min.css'%}">
 <link rel="stylesheet" href="{% static 'plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css'%}">
@@ -65,6 +63,9 @@
                 </h3>
                 <div class="bd-example m-0 float-right">
                     {% if perms.workers.subdivision_view %}
+                    <a type="submit" class="btn btn-primary btn-xs " href="{% url 'subdivision'%}">Настройки организаций</a>
+                    {%endif%}
+                    {% if perms.workers.subdivision_view %}
                     <a type="submit" class="btn btn-primary btn-xs " href="{% url 'subdivision'%}">Настройки управления</a>
                     {%endif%}
                     {% if perms.workers.department_view %}
@@ -100,7 +101,10 @@
                         {%if worker.user.image_smol %}
                         <img src="{{worker.user.image_smol.url}}" alt="user-avatar"
                              class="img-circle img-bordered-sm" width="30" height="30">
-                        {%endif%}
+                         {%else%}
+                            <img src="{% static 'img/avatar_smol.jpg'%}" alt="user-avatar"
+                                 class="img-circle img-bordered-sm" width="30" height="30">
+                            {%endif%}
                         </a>
                         </td>
                         <td>{{worker}}</td>
@@ -130,8 +134,6 @@
 {% endblock %}
 
 {% block script %}
-<!-- jQuery -->
-<script src="{% static 'plugins/jquery/jquery.min.js'%}"></script>
 <!-- Select2 -->
 <script src="{% static 'plugins/select2/js/select2.full.min.js'%}"></script>
 <!-- InputMask -->

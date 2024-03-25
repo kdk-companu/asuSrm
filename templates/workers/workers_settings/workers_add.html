@@ -1,16 +1,5 @@
 {% extends 'base.html'%}
 {% load static %}
-{% block style %}
-<!-- Google Font: Source Sans Pro -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
-<!-- Select2 -->
-<link rel="stylesheet" href="{% static 'plugins/select2/css/select2.min.css'%}">
-<link rel="stylesheet" href="{% static 'plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css'%}">
-
-<link rel="stylesheet" href="{% static 'plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css'%}">
-<!-- Theme style -->
-<link rel="stylesheet" href="{% static 'css/adminlte.css'%}">
-{% endblock %}
 {% block content_header %}
 <li class="breadcrumb-item"><a href="#">Главная</a></li>
 <li class="breadcrumb-item"><a href="{% url 'workers'%}">Пользователи</a></li>
@@ -19,10 +8,7 @@
 {% block content %}
 <!-- таблица -->
 <div class="row">
-
-
     <div class="col-12">
-
         <form action="" method="post">
             {% csrf_token %}
             <!-- interactive chart -->
@@ -35,13 +21,13 @@
                     </h3>
                 </div>
                 {% if messages %}
-                    {% for message in messages %}
-                    {% if message.tags %}
-                    <div class="alert alert-success alert-dismissible">
-                        {{ message }}
-                    </div>
-                    {% endif %}
-                    {% endfor %}
+                {% for message in messages %}
+                {% if message.tags %}
+                <div class="alert alert-success alert-dismissible">
+                    {{ message }}
+                </div>
+                {% endif %}
+                {% endfor %}
                 {% endif %}
                 <div class="card-body">
                     {%for fr in form%}
@@ -60,7 +46,7 @@
                 </div>
                 <div class="row no-print">
                     <div class="col-12">
-                        <a href="{%url 'workers'%}" rel="noopener"  class="btn btn-secondary"><i
+                        <a href="{%url 'workers'%}" rel="noopener" class="btn btn-secondary"><i
                                 class="fas fa fa-reply"></i> Отмена</a>
                         <button type="submit" class="btn btn-success float-right"><i class="fa fa-user"></i>
                             Добавить нового пользователя
@@ -72,25 +58,4 @@
     </div>
 </div>
 <!-- /.таблица -->
-{% endblock %}
-
-{% block script %}
-
-<!-- jQuery -->
-<script src="{% static 'plugins/jquery/jquery.min.js'%}"></script>
-<!-- Select2 -->
-<script src="{% static 'plugins/select2/js/select2.full.min.js'%}"></script>
-<!-- InputMask -->
-<script src="{% static 'plugins/moment/moment.min.js'%}"></script>
-<script src="{% static 'plugins/moment/moment-with-locales.min.js'%}"></script>
-<script src="{% static 'plugins/jQuery-Mask/jquery.mask.js'%}"></script>
-<!-- Tempusdominus Bootstrap 4 -->
-<script src="{% static 'plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js'%}"></script>
-
-<script>
-  $(function () {
-    //Initialize Select2 Elements
-    $('.select2').select2();
-  })
-</script>
 {% endblock %}

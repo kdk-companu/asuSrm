@@ -28,6 +28,7 @@ class Organization(models.Model):
     inn = models.CharField(max_length=150, blank=True, unique=True, verbose_name='ИНН')
     website = models.CharField(max_length=150, blank=True, unique=True, verbose_name='Сайт')
     description = models.TextField(verbose_name='Описание', blank=True)
+    admin = models.BooleanField(default=False, verbose_name='Организация владелец портала')
     slug = models.SlugField(max_length=100, unique=True, db_index=True, verbose_name='URL')
 
     def __str__(self):
