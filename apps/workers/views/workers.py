@@ -1,19 +1,17 @@
 import os
-from pathlib import Path
-
-import patoolib
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.models import Permission
+from django.contrib.auth.models import Permission, Group
 from django.contrib.auth.views import PasswordChangeView
 from django.db.models import Q
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import redirect
 from django.urls import reverse, reverse_lazy
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views import View
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from apps.workers.forms import Search_Filter, Search_User_Filter, Workers_Add_Form, Workers_Form_Upload_Images, \
-    Workers_Form_PasswordChange, Workers_Form_Change, Workers_Form_Basic_Change, Workers_Form_Closed_Change, test3_form, \
+    Workers_Form_PasswordChange, Workers_Form_Change, Workers_Form_Basic_Change, Workers_Form_Closed_Change, \
     Workers_Form_Upload_Passport, Workers_Form_Upload_Snils, Workers_Form_Upload_Inn, Workers_Form_Upload_Archive, \
-    Workers_Form_Upload_Signature
+    Workers_Form_Upload_Signature, Workers_Form_UpdatePassword, Group_Form_Permissions
 from apps.workers.models import User, User_Basic, User_Closed
 from django.contrib import messages
 
@@ -146,7 +144,7 @@ class Workers_Add(LoginRequiredMixin, ViewsPermissionsMixin, CreateView):
         upadate_user = User.objects.latest('id')
         # Исключаем ошибки при создании пользователя
         try:
-            upadate_user = User.objects.latest('id')
+            # upadate_user = User.objects.latest('id')
             # Создание папок для нового пользователя
             folder_user = "media/user/" + str(upadate_user.pk)
             folder_user_images = "media/user/" + str(upadate_user.pk) + "/images/"
@@ -156,10 +154,15 @@ class Workers_Add(LoginRequiredMixin, ViewsPermissionsMixin, CreateView):
             os.mkdir(folder_save_files)
         except Exception:
             pass
-        message = "Пользователь {0} добавлен в базу.".format(upadate_user)
-        messages.success(self.request, message)
+        # Добавить управление и отдел при добавлении сотрудника
+        # print(self.user)
+        user_subdivision_department = User_Basic.objects.get(user=self.request.user)
+        new_user_subdivision_department = User_Basic.objects.get(user=upadate_user)
+        new_user_subdivision_department.organization_subdivision = user_subdivision_department.organization_subdivision
+        new_user_subdivision_department.organization_department = user_subdivision_department.organization_department
+        new_user_subdivision_department.save()
 
-        return reverse('workers_add')
+        return reverse('workers_detail', kwargs={'workers_slug': upadate_user.slug})
 
 
 class Workers_DetailView(LoginRequiredMixin, ViewsPermissionsMixin, DetailView):
@@ -207,37 +210,35 @@ class Workers_Change_Password(LoginRequiredMixin, PasswordChangeView):
         return HttpResponseRedirect('')
 
 
-#
-# class Workers_Update_Password(LoginRequiredMixin, ViewsPermissionsMixin, DataMixin, UpdateView):
-#     '''Изменить только по правам'''
-#     model = User
-#     template_name = 'workers/workers_password_update.html'
-#     form_class = Workers_Form_UpdatePassword
-#     login_url = 'login'
-#     redirect_field_name = ''
-#     permission_required = 'workers.workers_update_password_superiors'
-#
-#     # Управление по slug
-#     def get_object(self, queryset=None):
-#         instance = User.objects.get(slug=self.kwargs.get('workers_slug', ''))
-#         return instance
-#
-#     def get_context_data(self, *, object_list=None, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         project_menus = self.get_user_context(title='Сброс пароля')
-#         context = dict(list(context.items()) + list(project_menus.items()))
-#         context['workers'] = User.objects.get(slug=self.kwargs.get('workers_slug'))
-#         return context
-#
-#     def get_success_url(self):
-#         if 'workers_slug' in self.kwargs:
-#             slug = self.kwargs['workers_slug']
-#         return reverse('workers_update_password', kwargs={'workers_slug': slug})
-#
-#     def form_valid(self, form):
-#         self.object = form.save()
-#         messages.success(self.request, 'Данные сохранены успешно')
-#         return HttpResponseRedirect(self.get_success_url())
+class Workers_Update_Password(UpdateView):
+    """Изменить только по правам"""
+    model = User
+    template_name = 'workers/workers_password_update.html'
+    form_class = Workers_Form_UpdatePassword
+    login_url = 'login'
+    redirect_field_name = ''
+    permission_required = 'workers.workers_update_password_superiors'
+
+    # Управление по slug
+    def get_object(self, queryset=None):
+        instance = User.objects.get(slug=self.kwargs.get('workers_slug', ''))
+        return instance
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Редактирование пользователя'
+        context['user'] = User.objects.get(slug=self.kwargs.get('workers_slug', ''))
+        return context
+
+    def get_success_url(self):
+        if 'workers_slug' in self.kwargs:
+            slug = self.kwargs['workers_slug']
+        return reverse('workers_update_password', kwargs={'workers_slug': slug})
+
+    def form_valid(self, form):
+        self.object = form.save()
+        messages.success(self.request, 'Данные сохранены успешно')
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class User_Change(LoginRequiredMixin, ViewsPermissionsMixin, UpdateView):
@@ -628,47 +629,87 @@ class Workers_Signature_Delete(DetailView):  # LoginRequiredMixin, ViewsPermissi
         return context
 
 
-class TEST(ListView):
-    # Permission
-
-    model = Permission  # Все права в базе
-    template_name = 'test.html'
-    context_object_name = 'test'
-
-
-class TEST2(DetailView):
-    # Permission
-
-    model = User  # Все права в базе
-    template_name = 'test2.html'
-
-    slug_url_kwarg = 'workers_slug'
-    context_object_name = 'worker'
-
-    # Права пользователя
+class Group_Permissions(UpdateView):
+    """Управление группами"""
+    model = Group
+    form_class = Group_Form_Permissions
+    template_name = 'workers/workers_settings/group_permissions.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['title'] = 'Страница пользователя'
-
+        context['title'] = 'Настройка прав группы'
+        context['group'] = Group.objects.get(pk=self.kwargs['pk'])
         return context
 
+    def get_success_url(self):
+        messages.success(self.request, "Данные сохранены успешно")
+        return reverse("chief_permissions", kwargs={"pk": self.kwargs['pk']})
 
-class TEST3(UpdateView):
+
+class User_Permissions(DetailView):
+    """Добавление нового сотрудника"""
     model = User
-    template_name = 'test3.html'
-    # fields = '__all__'
-    form_class = test3_form
-    login_url = 'login'
-    permission_required = 'workers.user_closed_change'
+    template_name = 'workers/workers_settings/workers_permissions.html'
 
-    # Управление по slug
     def get_object(self, queryset=None):
-        instance = User_Closed.objects.get(user__slug=self.kwargs.get('workers_slug', ''))
+        instance = User.objects.get(slug=self.kwargs.get('workers_slug', ''))
         return instance
 
-    def get_context_data(self, *, object_list=None, **kwargs):
+    def post(self, request, *args, **kwargs):
+        print('-------------1111')
+
+        lll = request.POST.get("permission_add")
+        if request.POST.get("permission_add"):
+            permission = Permission.objects.get(codename=request.POST.get("permission_add"))
+            user = User.objects.get(slug=self.kwargs.get('workers_slug', ''))
+            user.user_permissions.add(permission)
+        elif request.POST.get("permission_remove"):
+            permission = Permission.objects.get(codename=request.POST.get("permission_remove"))
+            user = User.objects.get(slug=self.kwargs.get('workers_slug', ''))
+            user.user_permissions.remove(permission)
+
+        return redirect('workers_permissions', *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['title'] = 'Редактирование. Закрытая информация.'
-        context['user'] = User.objects.get(slug=self.kwargs.get('workers_slug', ''))
+        context['title'] = 'Редактирование прав пользователя.'
+        worker = User.objects.get(slug=self.kwargs.get('workers_slug', ''))  # Текущие права пользователя
+        context['worker'] = worker  # Текущие права пользователя
+        worker_permissions = dict()
+        for perm in worker.user_permissions.all():
+            worker_permissions[perm.codename] = perm.name
+        context['worker_permissions'] = worker_permissions  # Текущие права пользователя
+
+        worker_group_permissions = dict()
+        for perm in worker.groups.first().permissions.all():
+            worker_group_permissions[perm.codename] = perm.name
+        context['worker_group_permissions'] = worker_group_permissions  # Текущие групповые права пользователя
+
+        worker_all_permissions = {**worker_permissions, **worker_group_permissions}
+        # ------------------------------------
+        user_permissions = dict()
+        for perm in self.request.user.user_permissions.all():
+            user_permissions[perm.codename] = perm.name
+        context['user_permissions'] = user_permissions  # Текущие права пользователя
+
+        user_group_permissions = dict()
+        for perm in self.request.user.groups.first().permissions.all():
+            user_group_permissions[perm.codename] = perm.name
+        context['user_group_permissions'] = user_group_permissions  # Текущие групповые права пользователя
+
+        user_all_permissions = {**user_permissions, **user_group_permissions}
+
+        user_add_permissions = user_all_permissions.copy()
+        for worker_all_permission in worker_all_permissions:
+            del user_add_permissions[worker_all_permission]
+        context['user_add_permissions'] = user_add_permissions
+
+        # worker_permissions
+        user_remove_permissions = dict()
+        for perm in worker_permissions:
+            if user_all_permissions[perm]:
+                user_remove_permissions[perm] = worker_permissions[perm]
+
+        context['user_remove_permissions'] = user_remove_permissions
+
         return context

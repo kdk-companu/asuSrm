@@ -1,0 +1,67 @@
+
+----
+<br>
+{{title}}
+<br>
+----
+<BR>
+
+<div style="width:90%;border:1px solid #000;">
+    <div style="float:left; width:25%; background:#fff;">
+        Ваши дополнительные права<br>
+        {% for key,value in worker_permissions.items %}
+        {{value}}
+        <br>
+        {%endfor%}
+    </div>
+    <div style="float:left; width:25%; background:#fff;">
+        Ваши права должности<br>
+        {% for key,value in worker_group_permissions.items %}
+        {{key}}{{value}}
+        <br>
+        {%endfor%}
+
+    </div>
+    <div style="float:left; width:25%; background:#fff;">
+                Пользователь  {{user}}<br>
+        {% for user_permission in user_permissions %}
+        {{user_permission}}
+        <br>
+        {%endfor%}
+
+
+    </div>
+    <div style="float:left; width:25%; background:#fff;">
+                    Пользователь групповые{{user}}<br>
+        {% for user_group_permission in user_group_permissions %}
+        {% for key,value in worker_permissions.items
+
+        {{user_group_permission}}
+        <br>
+        {%endfor%}
+
+    </div>
+<div style="clear:both;"></div>
+
+
+</div>
+
+
+<form method="post">
+    {% csrf_token %}
+    {% for key,value in user_add_permissions.items %}
+     {{key}} {{value}} <button type="submit" name="permission_add" value="{{key}}">test</button>
+    <br>
+    {%endfor%}
+
+<br>
+    =====<br>
+        {% for key,value in user_remove_permissions.items %}
+     {{key}} {{value}} <button type="submit" name="permission_remove" value="{{key}}">test</button>
+    <br>
+    {%endfor%}
+
+    <button type="submit">test</button>
+</form>
+
+

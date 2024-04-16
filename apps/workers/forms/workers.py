@@ -3,7 +3,10 @@ import os
 from django import forms
 from django.contrib.auth import password_validation
 from django.contrib.auth.forms import SetPasswordForm
+from django.contrib.auth.models import Permission, Group
 from django.core.exceptions import ValidationError
+from django.db.models import QuerySet, Q
+from django.forms import SelectMultiple, CheckboxInput, CheckboxSelectMultiple
 from transliterate.utils import _
 from apps.workers.models import User, User_Basic, User_Closed
 from library.archive import Archive
@@ -126,12 +129,11 @@ class Workers_Form_PasswordChange(SetPasswordForm):
 class Workers_Form_Change(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['organization'].empty_label = "Организация не выбрана."
         self.fields['employee'].empty_label = "Статус не выбран."
 
     class Meta:
         model = User
-        fields = ('surname', 'name', 'patronymic', 'phone', 'email', 'organization', 'employee')
+        fields = ('surname', 'name', 'patronymic', 'phone', 'email', 'employee')
         widgets = {
             'surname': forms.TextInput(
                 attrs={'class': 'form-control', 'placeholder': 'Фамилия', 'id': 'surname'}),
@@ -143,8 +145,6 @@ class Workers_Form_Change(forms.ModelForm):
                 attrs={'class': 'form-control', 'data-mask': "+7(000)000-0000"}),
             'email': forms.EmailInput(
                 attrs={'class': 'form-control', 'type': 'text', 'placeholder': 'Почта', 'id': 'email'}),
-            'organization': forms.Select(
-                attrs={'class': 'select2', 'style': 'width: 100%'}),
             'employee': forms.Select(
                 attrs={'class': 'select2', 'style': 'width: 100%'}),
         }
@@ -525,16 +525,43 @@ class Workers_Form_Upload_Signature(forms.ModelForm):
             ),
         }
 
-class test3_form(forms.ModelForm):
+
+class Workers_Form_UpdatePassword(forms.ModelForm):
+    password1 = forms.CharField(label='Пароль', widget=forms.PasswordInput(
+        attrs={'class': 'form-control', 'placeholder': 'Пароль', 'id': 'password1'}))
+    password2 = forms.CharField(label='Подвержение пароля', widget=forms.PasswordInput(
+        attrs={'class': 'form-control', 'placeholder': 'Подвержение пароля', 'id': 'password2'}))
+
+    def clean_password2(self):
+        password1 = self.cleaned_data.get("password1")
+        password2 = self.cleaned_data.get("password2")
+        if password1 and password2 and password1 != password2:
+            raise ValidationError("Пароли не совпадают")
+        return password2
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # self.fields['organization_subdivision'].empty_label = "Управление не выбрано."
-        # self.fields['organization_department'].empty_label = "Отдел не выбран."
-        # self.fields['actual_subdivision'].empty_label = "Управление не выбрано."
-        # self.fields['actual_department'].empty_label = "Отдел не выбран."
-        # self.fields['chief'].empty_label = "Должность не выбрана."
 
     class Meta:
         model = User
+        fields = ['password1', 'password2']
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        password = self.cleaned_data["password2"]
+        user.set_password(password)
+        if commit:
+            user.save()
+        return user
+
+class Group_Form_Permissions(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    class Meta:
+        model = Group
         fields = (
-            'surname', 'name', 'user_permissions')
+            'permissions',)
+        widgets = {
+            'permissions': CheckboxSelectMultiple(attrs={'class': 'checkbox-select-multiple'}),
+        }

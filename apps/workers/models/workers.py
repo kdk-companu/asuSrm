@@ -86,8 +86,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     def save(self, *args, **kwargs):
         # Создаем slug один раз при добавлении пользователя
         if not self.slug:
-            date_add = datetime.date.today().strftime("%d-%m-%Y")
-            slug_name = "{0}{1}{2}{3}".format(self.surname, self.name, self.patronymic, date_add)
+            # Проверить на повторение slug
+            try:
+                thepost = User.objects.get(slug="{0}{1}{2}".format(self.surname, self.name, self.patronymic))
+                date_add = datetime.date.today().strftime("%d-%m-%Y")
+                slug_name = "{0}{1}{2}".format(self.surname, self.name, self.patronymic, date_add)
+            except User.DoesNotExist:
+                slug_name = "{0}{1}{2}".format(self.surname, self.name, self.patronymic)
             self.slug = slugify(translit(slug_name, 'ru', reversed=True))
         # Сохранение фотографий
         if self.image:

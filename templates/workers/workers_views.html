@@ -27,12 +27,14 @@
                         <p class="text-muted text-center">{{basic.chief.name}}</p>
                         <a href="{% url 'workers_image' worker.slug %}" class="btn btn-primary btn-block"><b>Изменить
                             иконку</b></a>
+                        <a href="{% url 'workers_permissions' worker.slug %}" class="btn btn-primary btn-block"><b>Изменить
+                            права доступа</b></a>
                         {% if worker == request.user%}
                         <a href="{% url 'workers_change_password'%}" class="btn btn-primary btn-block"><b>Изменить
                             пароль</b></a>
                         {% endif %}
                         {% if perms.workers.workers_update_password_superiors %}
-                        <a href="{{workers.get_absolute_url_update_pass}}" class="btn btn-primary btn-block"><b>Восстановить
+                        <a href="{% url 'workers_update_password' worker.slug %}" class="btn btn-primary btn-block"><b>Восстановить
                             пароль</b></a>
                         {% endif %}
                     </div>
@@ -306,5 +308,4 @@
     </div><!-- /.container-fluid -->
 </section>
 <!-- /.content -->
-
 {% endblock %}

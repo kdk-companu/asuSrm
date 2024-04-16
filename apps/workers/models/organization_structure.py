@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
 from django.urls import reverse
 from transliterate import translit
 from django.template.defaultfilters import slugify
@@ -96,3 +98,21 @@ class Chief(models.Model):
             ('chief_delete', 'Удалить.'),
             ('chief_view', 'Просмотреть.'),
         )
+
+
+@receiver(post_save, sender=Chief)
+def post_save_receiver(sender, instance, created, raw, using, **kwargs):
+    if created:
+        group_save = Group.objects.create(name=instance.name)
+        Chief.objects.filter(id=instance.pk).update(group=group_save)
+    else:
+        Group.objects.filter(id=instance.group.pk).update(name=instance.name)
+
+
+@receiver(post_delete)
+def post_delete_receiver(sender, instance, using, **kwargs):
+    try:
+        remove = Group.objects.filter(id=instance.group.pk)
+        remove.delete()
+    except Exception:
+        pass
