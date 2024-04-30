@@ -17,7 +17,7 @@
     <div style="float:left; width:25%; background:#fff;">
         Ваши права должности<br>
         {% for key,value in worker_group_permissions.items %}
-        {{key}}{{value}}
+        {{value}}
         <br>
         {%endfor%}
 
@@ -36,7 +36,7 @@
         {% for user_group_permission in user_group_permissions %}
         {% for key,value in worker_permissions.items
 
-        {{user_group_permission}}
+            {{value}}
         <br>
         {%endfor%}
 
@@ -50,7 +50,7 @@
 <form method="post">
     {% csrf_token %}
     {% for key,value in user_add_permissions.items %}
-     {{key}} {{value}} <button type="submit" name="permission_add" value="{{key}}">test</button>
+    {{value}} <button type="submit" name="permission_add" value="{{key}}">test</button>
     <br>
     {%endfor%}
 

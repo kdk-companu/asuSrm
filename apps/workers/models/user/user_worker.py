@@ -1,119 +1,71 @@
 import os
-import datetime
-from uuid import uuid4
 
-from PIL import Image
-from django.contrib.auth.base_user import AbstractBaseUser
-from django.contrib.auth.models import PermissionsMixin
+from django.contrib.auth.models import Group
 from django.db import models
-from django.db.models.signals import ModelSignal, post_save
-from transliterate import translit
-from django.template.defaultfilters import slugify
-from phonenumber_field.modelfields import PhoneNumberField
-from django.utils import timezone
-from django.urls import reverse
+from django.db.models.signals import post_save
 from django.dispatch import receiver
-from apps.workers.models import Organization, Subdivision, Department, Chief
-from apps.workers.models.managers import UserManager
+from transliterate.utils import _
 
-# Аватарки
+from apps.workers.models import UserBasic, Subdivision, Department, Chief
 from library.files import Files
 from library.image import ImagesEdit
 
 
-def user_path(instance, filename):
-    return 'user/{0}/images/{1}'.format(instance.pk, filename)
+class WorkerManager(models.Manager):
+    def create_user(self, phone, password, **extra_fields):
+        if not phone:
+            raise ValueError(_('Не указан телефонный номер.'))
+        user = self.model(phone=phone, **extra_fields)
+        user.set_password(password)
+        user.save()
+        return user
+
+    def get_queryset(self, *args, **kwargs):
+        return super().get_queryset(*args, **kwargs).filter(type=UserBasic.Types.WORKER)
 
 
-# Путь хранения пользовательских файлов
+class Worker(UserBasic):
+    class Meta:
+        proxy = True
 
-class User(AbstractBaseUser, PermissionsMixin):
-    """Сотрудники переписанная от User
-        https://docs.djangoproject.com/en/4.1/ref/models/instances/"""
+    objects = WorkerManager()
 
-    WORKERS_STATUS = (
-        ('employee_current', 'Сотрудник действующий'),
-        ('employee_fired', 'Сотрудник уволенный'),
-        ('contractor_current', 'Подрядчик действующий'),
-        ('contractor_fired', 'Подрядчик уволенный'),
-        ('exploitation_current', 'Эксплуатация действующий'),
-        ('exploitation_fired', 'Эксплуатация уволенный'),
-        ('technician_current', 'Наладчик действующий'),
-        ('technician_fired', 'Наладчик уволенный')
-    )
-
-    # ФИО
-    surname = models.CharField(max_length=60, unique=False, verbose_name='Фамилия')
-    name = models.CharField(max_length=60, unique=False, verbose_name='Имя')
-    patronymic = models.CharField(max_length=60, unique=False, verbose_name='Отчество')
-    slug = models.SlugField(max_length=100, unique=True, db_index=True, verbose_name='slug')
-    # Контакты
-    phone = PhoneNumberField(null=False, blank=False, unique=True, verbose_name='Телефон')
-    email = models.EmailField(unique=False, verbose_name='Почта')
-    # Аватарки
-    image = models.ImageField(upload_to=user_path, null=True, blank=True, verbose_name='Фото')
-    image_smol = models.ImageField(upload_to=user_path, null=True, blank=True, verbose_name='Фото маленькое')
-    # Текущий статус работника
-    organization = models.ForeignKey(Organization, on_delete=models.PROTECT, blank=False, null=True,
-                                     verbose_name='Организация')
-    employee = models.CharField(verbose_name='Статус', choices=WORKERS_STATUS, max_length=30,
-                                default='employee_current')
-    # Система прав
-    is_staff = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
-    date_joined = models.DateTimeField(default=timezone.now)
-
-    USERNAME_FIELD = 'phone'
-    REQUIRED_FIELDS = ['surname', 'name', 'patronymic']
-    objects = UserManager()
-
-    def __str__(self):
-        return '{0} {1} {2}'.format(self.surname, self.name, self.patronymic)
+    def save(self, *args, **kwargs):
+        self.type = UserBasic.Types.WORKER
+        return super().save(*args, **kwargs)
 
     class Meta:
-        verbose_name = 'Пользователь'
-        verbose_name_plural = 'Пользователи'
+        verbose_name = 'Пользователь. Сотрудник.'
+        verbose_name_plural = 'Пользователи. Сотрудники.'
         ordering = ['pk']
         default_permissions = ('')
 
         permissions = (
-            ('user_add', 'Добавить.'),
-            ('user_change', 'Редактировать.'),
-            ('user_delete', 'Удалить.'),
-            ('user_view', 'Просмотреть.'),
+            ('UserWorker_add', 'Пользователи. Сотрудник. Добавить.'),
+            ('UserWorker_change', 'Пользователи. Сотрудник. Редактировать.'),
+            ('UserWorker_view', 'Пользователи. Сотрудник. Просмотреть.'),
+            ('UserWorker_his_change', 'Пользователи. Сотрудник. Самостоятельно.Редактировать.')
         )
 
-    def save(self, *args, **kwargs):
-        # Создаем slug один раз при добавлении пользователя
-        if not self.slug:
-            # Проверить на повторение slug
-            try:
-                thepost = User.objects.get(slug="{0}{1}{2}".format(self.surname, self.name, self.patronymic))
-                date_add = datetime.date.today().strftime("%d-%m-%Y")
-                slug_name = "{0}{1}{2}".format(self.surname, self.name, self.patronymic, date_add)
-            except User.DoesNotExist:
-                slug_name = "{0}{1}{2}".format(self.surname, self.name, self.patronymic)
-            self.slug = slugify(translit(slug_name, 'ru', reversed=True))
-        # Сохранение фотографий
-        if self.image:
-            # Обработка изображнеий
-            image_Save = ImagesEdit.add_avatar(self.image, str(self.pk))
-            self.image = image_Save['image']
-            self.image_smol = image_Save['images_smol']
 
-        super().save()
-
-    def get_absolute_url(self):
-        return reverse('workers_detailView', kwargs={'workers_slug': self.slug})
-
-
-class User_Basic(models.Model):
+class WorkerBasic(models.Model):
     """Базовая информация о сотрудниках"""
     GENDER_CHOICES = (
         ('Male', 'Мужской'),
         ('Female', 'Женский'),
     )
-    user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='ФИО')
+
+    class WORKERS_STATUS(models.TextChoices):
+        employee_current = "employee_current", "Сотрудник действующий"  #
+        employee_fired = "employee_fired", "Сотрудник уволенный"  #
+
+    # WORKERS_STATUS = (('employee_current', 'Сотрудник действующий'),
+    #                   ('employee_fired', 'Сотрудник уволенный'))
+    user = models.OneToOneField(Worker, on_delete=models.PROTECT, verbose_name='ФИО')
+
+    employee = models.CharField(verbose_name='Статус сотрудника', choices=WORKERS_STATUS.choices, max_length=30,
+                                default=WORKERS_STATUS.employee_current)
+
     organization_subdivision = models.ForeignKey(Subdivision, on_delete=models.PROTECT, blank=True,
                                                  null=True, related_name='organization_subdivision',
                                                  verbose_name='Управление в организации')
@@ -140,32 +92,41 @@ class User_Basic(models.Model):
     def __str__(self):
         return '{0} {1} {2}'.format(self.user.surname, self.user.name, self.user.patronymic)
 
+    def save(self, *args, **kwargs):
+        """Изменение прав пользователя по группам"""
+        try:
+            self.user.groups.clear()
+            self.user.groups.add(self.chief.group)
+        except:
+            pass
+        return super().save(*args, **kwargs)
+
     class Meta:
-        verbose_name = 'Сотрудники общая информация'
-        verbose_name_plural = 'Сотрудники общая информация'  # Во множественнмо числе
+        verbose_name = 'Пользователь. Сотрудник. Общая информация.'
+        verbose_name_plural = 'Пользователь. Сотрудники. Общая информация.'  # Во множественнмо числе
         ordering = ['pk']  # Сортировка по каким полям, - обратная сортировка
         default_permissions = ('')
         permissions = (
-            ('user_basic_change', 'Редактировать.'),
-            ('user_basic_view', 'Просмотреть.'),
+            ('WorkerBasic_change', 'Пользователь. Сотрудник. Общая информация. Редактировать.'),
+            ('WorkerBasic_view', 'Пользователь. Сотрудник. Общая информация. Просмотреть.'),
+            ('WorkerBasic_his_change', 'Пользователи. Сотрудник. Самостоятельно. Редактировать.')
         )
 
     # При создании пользователя данная таблица создается автоматом
-    @receiver(post_save, sender=User)
+    @receiver(post_save, sender=Worker)
     def create_user_basic(sender, instance, created, **kwargs):
-        if created and instance.employee == "employee_current":
-            User_Basic.objects.create(user=instance)
+        if created:
+            WorkerBasic.objects.create(user=instance)
 
 
-# Путь хранения пользовательских файлов
 def closed_path(instance, filename):
     upload_to = str('user/{0}/files/'.format(instance.user.pk))
     return os.path.join(upload_to, Files.random_name(filename))
 
 
-class User_Closed(models.Model):
+class WorkerClosed(models.Model):
     """Закрытая информация о сотрудники"""
-    user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='ФИО')
+    user = models.OneToOneField(Worker, on_delete=models.PROTECT, verbose_name='ФИО')
     organization_order_of_employment = models.CharField(max_length=255, verbose_name='Приказ о трудоустройстве',
                                                         null=True, blank=True)
     organization_labor_contract = models.CharField(max_length=255, verbose_name='Трудовой договор', null=True,
@@ -205,21 +166,22 @@ class User_Closed(models.Model):
         ordering = ['pk']  # Сортировка по каким полям, - обратная сортировкаа
         default_permissions = ('')
         permissions = (
-            ('user_closed_change', 'Редактировать.'),
-            ('user_closed_view', 'Просмотреть.'),
+            ('WorkerClosed_change', 'Пользователь. Сотрудник. Закрытая информация. Редактировать.'),
+            ('WorkerClosed_view', 'Пользователь. Сотрудник. Закрытая информация. Просмотреть.'),
+            ('WorkerClosed_his_change', 'Пользователи. Сотрудник. Закрытая информация. Самостоятельно. Редактировать.'),
         )
 
     # При создании пользователя данная таблица создается автоматом
-    @receiver(post_save, sender=User)
+    @receiver(post_save, sender=Worker)
     def create_user_closed(sender, instance, created, **kwargs):
         if created:
-            User_Closed.objects.create(user=instance)
+            WorkerClosed.objects.create(user=instance)
 
     def save(self, *args, **kwargs):
-        # # Загрузка образца подписи
+        # Загрузка образца подписи
         if self.signature_example:
             try:
-                file_remove = User_Closed.objects.get(user__slug=self.user.slug)
+                file_remove = WorkerClosed.objects.get(user__slug=self.user.slug)
                 file_remove.signature_example.delete(save=True)
             except:
                 pass

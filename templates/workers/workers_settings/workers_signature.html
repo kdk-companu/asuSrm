@@ -13,9 +13,9 @@
             <div class="card-body box-profile">
                 <div class="text-center">
                     {%if workers.signature_example %}
-                    <img src="{{workers.signature_example.url}}" alt="user-signature" class="img-bordered-sm" width="350" height="175">
+                    <img src="{{workers.signature_example.url}}" alt="user-signature" class="img-bordered-sm" width="320" height="190">
                     {%else%}
-                    <img src="{% static 'img/signature.png'%}" alt="user-signature" class="img-bordered-sm" width="350" height="175">
+                    <img src="{% static 'img/signature.png'%}" alt="user-signature" class="img-bordered-sm"  width="320" height="190">
                     {% endif%}
                 </div>
                 <h3 class="profile-username text-center">{{ workers }}</h3>

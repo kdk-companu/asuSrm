@@ -1,10 +1,12 @@
 from django import forms
 
 from apps.workers.models import Subdivision, Department, Chief
-
+from django.contrib.auth.models import Permission, Group
+from django.forms import SelectMultiple, CheckboxInput, CheckboxSelectMultiple
 
 class Form_Subdivision_Control(forms.ModelForm):
     """Управление."""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -23,6 +25,7 @@ class Form_Subdivision_Control(forms.ModelForm):
 
 class Form_Department_Control(forms.ModelForm):
     """Управление."""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -41,6 +44,7 @@ class Form_Department_Control(forms.ModelForm):
 
 class Form_Chief_Control(forms.ModelForm):
     """Должность."""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -54,4 +58,17 @@ class Form_Chief_Control(forms.ModelForm):
                 attrs={'class': 'form-control', 'placeholder': 'Сокращенное название', 'id': 'abbreviation'}),
             'rights': forms.NumberInput(
                 attrs={'class': 'form-control', 'placeholder': 'По старшинству', 'id': 'rights'})
+        }
+
+
+class Group_Form_Permissions(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    class Meta:
+        model = Group
+        fields = (
+            'permissions',)
+        widgets = {
+            'permissions': CheckboxSelectMultiple(attrs={'class': 'checkbox-select-multiple'}),
         }

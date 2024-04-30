@@ -8,7 +8,8 @@ from django.core.exceptions import ValidationError
 from django.db.models import QuerySet, Q
 from django.forms import SelectMultiple, CheckboxInput, CheckboxSelectMultiple
 from transliterate.utils import _
-from apps.workers.models import User, User_Basic, User_Closed
+
+from apps.workers.models import WorkerBasic, Worker, UserBasic, WorkerClosed
 from library.archive import Archive
 from library.files import Files
 
@@ -32,7 +33,7 @@ class Search_User_Filter(forms.ModelForm):
         self.fields['chief'].empty_label = "Выберите должность"
 
     class Meta:
-        model = User_Basic
+        model = WorkerBasic
         fields = ['organization_subdivision', 'organization_department', 'chief']
         widgets = {
             'organization_subdivision': forms.Select(
@@ -45,16 +46,14 @@ class Search_User_Filter(forms.ModelForm):
 
 
 class Workers_Add_Form(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
     password1 = forms.CharField(label='Пароль', widget=forms.PasswordInput(
         attrs={'class': 'form-control', 'placeholder': 'Пароль', 'id': 'password1'}))
     password2 = forms.CharField(label='Подверженнее пароля', widget=forms.PasswordInput(
         attrs={'class': 'form-control', 'placeholder': 'Подверженнее пароля', 'id': 'password2'}))
 
     class Meta:
-        model = User
+        model = Worker
+        fields = '__all__'
         fields = ('surname', 'name', 'patronymic', 'phone')
         widgets = {
             'surname': forms.TextInput(
@@ -129,11 +128,10 @@ class Workers_Form_PasswordChange(SetPasswordForm):
 class Workers_Form_Change(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['employee'].empty_label = "Статус не выбран."
 
     class Meta:
-        model = User
-        fields = ('surname', 'name', 'patronymic', 'phone', 'email', 'employee')
+        model = Worker
+        fields = ('surname', 'name', 'patronymic', 'phone', 'email')
         widgets = {
             'surname': forms.TextInput(
                 attrs={'class': 'form-control', 'placeholder': 'Фамилия', 'id': 'surname'}),
@@ -145,12 +143,10 @@ class Workers_Form_Change(forms.ModelForm):
                 attrs={'class': 'form-control', 'data-mask': "+7(000)000-0000"}),
             'email': forms.EmailInput(
                 attrs={'class': 'form-control', 'type': 'text', 'placeholder': 'Почта', 'id': 'email'}),
-            'employee': forms.Select(
-                attrs={'class': 'select2', 'style': 'width: 100%'}),
         }
 
 
-class Workers_Form_Basic_Change(forms.ModelForm):
+class WorkerBasic_Form_Change(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['organization_subdivision'].empty_label = "Управление не выбрано."
@@ -160,7 +156,7 @@ class Workers_Form_Basic_Change(forms.ModelForm):
         self.fields['chief'].empty_label = "Должность не выбрана."
 
     class Meta:
-        model = User_Basic
+        model = WorkerBasic
         fields = (
             'organization_subdivision', 'organization_department', 'actual_subdivision', 'actual_department', 'chief',
             'date_employment', 'date_chief',
@@ -242,17 +238,9 @@ class Workers_Form_Basic_Change(forms.ModelForm):
     )
 
 
-class Workers_Form_Closed_Change(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # self.fields['organization_subdivision'].empty_label = "Управление не выбрано."
-        # self.fields['organization_department'].empty_label = "Отдел не выбран."
-        # self.fields['actual_subdivision'].empty_label = "Управление не выбрано."
-        # self.fields['actual_department'].empty_label = "Отдел не выбран."
-        # self.fields['chief'].empty_label = "Должность не выбрана."
-
+class WorkerClosed_Form_Change(forms.ModelForm):
     class Meta:
-        model = User_Closed
+        model = WorkerClosed
         fields = (
             'organization_order_of_employment', 'organization_labor_contract', 'passport_serial', 'passport_number',
             'passport_passport_issued', 'passport_passport_issued_date', 'passport_place_of_issue',
@@ -337,7 +325,7 @@ class Workers_Form_Upload_Images(forms.ModelForm):
             raise ValidationError("Пустое изображение.")
 
     class Meta:
-        model = User
+        model = Worker
         fields = ('image',)
         widgets = {
             'image': forms.FileInput(
@@ -346,7 +334,7 @@ class Workers_Form_Upload_Images(forms.ModelForm):
         }
 
 
-class Workers_Form_Upload_Passport(forms.ModelForm):
+class WorkerClosed_Form_Upload_Passport(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['passport_scan'].empty_label = ""
@@ -372,7 +360,7 @@ class Workers_Form_Upload_Passport(forms.ModelForm):
         return file
 
     class Meta:
-        model = User_Closed
+        model = WorkerClosed
         fields = ('passport_scan',)
         widgets = {
             'passport_scan': forms.FileInput(
@@ -381,7 +369,7 @@ class Workers_Form_Upload_Passport(forms.ModelForm):
         }
 
 
-class Workers_Form_Upload_Snils(forms.ModelForm):
+class WorkerClosed_Form_Upload_Snils(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['snils_scan'].empty_label = ""
@@ -407,7 +395,7 @@ class Workers_Form_Upload_Snils(forms.ModelForm):
         return file
 
     class Meta:
-        model = User_Closed
+        model = WorkerClosed
         fields = ('snils_scan',)
         widgets = {
             'snils_scan': forms.FileInput(
@@ -416,7 +404,7 @@ class Workers_Form_Upload_Snils(forms.ModelForm):
         }
 
 
-class Workers_Form_Upload_Inn(forms.ModelForm):
+class WorkerClosed_Form_Upload_Inn(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['inn_scan'].empty_label = ""
@@ -442,7 +430,7 @@ class Workers_Form_Upload_Inn(forms.ModelForm):
         return file
 
     class Meta:
-        model = User_Closed
+        model = WorkerClosed
         fields = ('inn_scan',)
         widgets = {
             'inn_scan': forms.FileInput(
@@ -451,7 +439,7 @@ class Workers_Form_Upload_Inn(forms.ModelForm):
         }
 
 
-class Workers_Form_Upload_Archive(forms.ModelForm):
+class WorkerClosed_Form_Upload_Archive(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['archive_documents_employment'].empty_label = ""
@@ -477,7 +465,7 @@ class Workers_Form_Upload_Archive(forms.ModelForm):
         return file
 
     class Meta:
-        model = User_Closed
+        model = WorkerClosed
         fields = ('archive_documents_employment',)
         widgets = {
             'archive_documents_employment': forms.FileInput(
@@ -486,7 +474,7 @@ class Workers_Form_Upload_Archive(forms.ModelForm):
         }
 
 
-class Workers_Form_Upload_Signature(forms.ModelForm):
+class WorkerClosed_Form_Upload_Signature(forms.ModelForm):
     ALLOWED_TYPES = ['png', ]
 
     def __init__(self, *args, **kwargs):
@@ -517,7 +505,7 @@ class Workers_Form_Upload_Signature(forms.ModelForm):
             raise ValidationError("Пустое изображение.")
 
     class Meta:
-        model = User_Closed
+        model = WorkerClosed
         fields = ('signature_example',)
         widgets = {
             'signature_example': forms.FileInput(
@@ -543,7 +531,7 @@ class Workers_Form_UpdatePassword(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
     class Meta:
-        model = User
+        model = WorkerBasic
         fields = ['password1', 'password2']
 
     def save(self, commit=True):
@@ -553,15 +541,4 @@ class Workers_Form_UpdatePassword(forms.ModelForm):
         if commit:
             user.save()
         return user
-
-class Group_Form_Permissions(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    class Meta:
-        model = Group
-        fields = (
-            'permissions',)
-        widgets = {
-            'permissions': CheckboxSelectMultiple(attrs={'class': 'checkbox-select-multiple'}),
-        }
+#

@@ -6,6 +6,7 @@
 <li class="breadcrumb-item active">{{title}}</li>
 {% endblock %}
 {% block content %}
+
 <!-- Main content -->
 <section class="content">
     <div class="container-fluid">
@@ -25,10 +26,14 @@
                         </div>
                         <h4 class="profile-username text-center">{{worker}}</h4>
                         <p class="text-muted text-center">{{basic.chief.name}}</p>
+                        {%if worker_permission%}
                         <a href="{% url 'workers_image' worker.slug %}" class="btn btn-primary btn-block"><b>Изменить
                             иконку</b></a>
+                        {%endif%}
+                        {%if permission%}
                         <a href="{% url 'workers_permissions' worker.slug %}" class="btn btn-primary btn-block"><b>Изменить
                             права доступа</b></a>
+                        {%endif%}
                         {% if worker == request.user%}
                         <a href="{% url 'workers_change_password'%}" class="btn btn-primary btn-block"><b>Изменить
                             пароль</b></a>
@@ -49,10 +54,12 @@
                         <h3 class="card-title">
                             Информация
                         </h3>
+                        {%if worker_permission%}
                         <div class="bd-example m-0 border-3 float-right">
                             <a type="submit" class="btn btn-primary btn-xs "
                                href="{% url 'workers_change' worker.slug %}">Редактировать</a>
                         </div>
+                        {%endif%}
                     </div><!-- /.card-header -->
                     <div class="card-body">
                         <dl class="row">
@@ -70,15 +77,18 @@
                     </div>
                 </div>
                 <!-- /.card -->
+                {%if basic%}
                 <div class="card">
                     <div class="card-header p-2">
                         <h3 class="card-title">
                             Базовая информация
                         </h3>
+                        {% if basic_permission %}
                         <div class="bd-example m-0 border-3 float-right">
                             <a type="submit" class="btn btn-primary btn-xs "
                                href="{% url 'workers_basic_change' worker.slug %}">Редактировать</a>
                         </div>
+                        {%endif%}
                     </div><!-- /.card-header -->
                     <div class="card-body">
                         <dl class="row">
@@ -142,16 +152,20 @@
                         </dl>
                     </div>
                 </div>
+                {%endif%}
                 <!-- /.card -->
+                {%if closed%}
                 <div class="card">
                     <div class="card-header p-2">
                         <h3 class="card-title">
                             Закрытая информация
                         </h3>
+                        {% if closed_permission %}
                         <div class="bd-example m-0 border-3 float-right">
                             <a type="submit" class="btn btn-primary btn-xs "
                                href="{% url 'workers_closed_change' worker.slug%}">Редактировать</a>
                         </div>
+                        {%endif%}
                     </div><!-- /.card-header -->
                     <div class="card-body">
                         <dl class="row">
@@ -214,15 +228,18 @@
                                 {% if closed.passport_scan%}
                                 <a type="submit" class="btn btn-success btn-xs "
                                    href="{{closed.passport_scan.url}}">Скачать</a>
-
+                                {% if closed_permission %}
                                 <a type="submit" class="btn btn-primary btn-xs "
                                    href="{% url 'workers_passport' worker.slug %}">Редактировать</a>
 
                                 <a type="submit" class="btn btn-danger btn-xs "
                                    href="{% url 'workers_passport_delete' worker.slug %}">Удалить</a>
+                                {%endif%}
                                 {%else%}
+                                {% if closed_permission %}
                                 <a type="submit" class="btn btn-primary btn-xs "
                                    href="{% url 'workers_passport' worker.slug %}">Добавить</a>
+                                {%endif%}
                                 {%endif%}
                             </dd>
                             <dt class="col-sm-3">СНИЛС номер:</dt>
@@ -234,15 +251,18 @@
                                 {% if closed.snils_scan%}
                                 <a type="submit" class="btn btn-success btn-xs "
                                    href="{{closed.snils_scan.url}}">Скачать</a>
-
+                                {% if closed_permission %}
                                 <a type="submit" class="btn btn-primary btn-xs "
                                    href="{% url 'workers_snils' worker.slug %}">Редактировать</a>
 
                                 <a type="submit" class="btn btn-danger btn-xs "
                                    href="{% url 'workers_snils_delete' worker.slug %}">Удалить</a>
+                                {%endif%}
                                 {%else%}
+                                 {% if closed_permission %}
                                 <a type="submit" class="btn btn-primary btn-xs "
                                    href="{% url 'workers_snils' worker.slug %}">Добавить</a>
+                                {%endif%}
                                 {%endif%}
                             </dd>
                             <dt class="col-sm-3">Инн номер:</dt>
@@ -254,15 +274,18 @@
                                 {% if closed.inn_scan%}
                                 <a type="submit" class="btn btn-success btn-xs "
                                    href="{{closed.inn_scan.url}}">Скачать</a>
-
+                                {% if closed_permission %}
                                 <a type="submit" class="btn btn-primary btn-xs "
                                    href="{% url 'workers_inn' worker.slug %}">Редактировать</a>
 
                                 <a type="submit" class="btn btn-danger btn-xs "
                                    href="{% url 'workers_inn_delete' worker.slug %}">Удалить</a>
+                                {%endif%}
                                 {%else%}
+                                {% if closed_permission %}
                                 <a type="submit" class="btn btn-primary btn-xs "
                                    href="{% url 'workers_inn' worker.slug %}">Добавить</a>
+                                {%endif%}
                                 {%endif%}
                             </dd>
                             <dt class="col-sm-3">Пакет документов:</dt>
@@ -270,15 +293,18 @@
                                 {% if closed.archive_documents_employment%}
                                 <a type="submit" class="btn btn-success btn-xs "
                                    href="{{closed.archive_documents_employment.url}}">Скачать</a>
-
+                                {% if closed_permission %}
                                 <a type="submit" class="btn btn-primary btn-xs "
                                    href="{% url 'workers_archive' worker.slug %}">Редактировать</a>
 
                                 <a type="submit" class="btn btn-danger btn-xs "
                                    href="{% url 'workers_archive_delete' worker.slug %}">Удалить</a>
+                                {%endif%}
                                 {%else%}
+                                {% if closed_permission %}
                                 <a type="submit" class="btn btn-primary btn-xs "
                                    href="{% url 'workers_archive' worker.slug %}">Добавить</a>
+                                {%endif%}
                                 {%endif%}
                             </dd>
                             <dt class="col-sm-3">Пример подписи:</dt>
@@ -286,20 +312,24 @@
                                 {% if closed.signature_example%}
                                 <a type="submit" class="btn btn-success btn-xs "
                                    href="{{closed.signature_example.url}}">Скачать</a>
-
+                                {% if closed_permission %}
                                 <a type="submit" class="btn btn-primary btn-xs "
                                    href="{% url 'workers_signature' worker.slug %}">Редактировать</a>
 
                                 <a type="submit" class="btn btn-danger btn-xs "
                                    href="{% url 'workers_signature_delete' worker.slug %}">Удалить</a>
+                                {%endif%}
                                 {%else%}
+                                {% if closed_permission %}
                                 <a type="submit" class="btn btn-primary btn-xs "
                                    href="{% url 'workers_signature' worker.slug %}">Добавить</a>
+                                {%endif%}
                                 {%endif%}
                             </dd>
                         </dl>
                     </div>
                 </div>
+                {%endif%}
                 <!-- /.card -->
             </div>
             <!-- /.col -->

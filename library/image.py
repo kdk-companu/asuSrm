@@ -35,6 +35,7 @@ class ImagesEdit:
         img.thumbnail(oputput_size)
         out['images_smol'] = '{0}{1}'.format(url_save, "photo_smol.jpg")
         img.save('{0}{1}'.format(folder_save, "photo_smol.jpg"))
+        print('xerrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr')
         return out
 
     def add_signature(image, user):

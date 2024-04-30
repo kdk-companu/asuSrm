@@ -1,14 +1,18 @@
+from django.urls import reverse, reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.models import Group
+from django.contrib import messages
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views.generic import ListView, UpdateView, CreateView
 
-from apps.workers.forms import Form_Department_Control, Form_Subdivision_Control, Form_Chief_Control
+from apps.workers.forms import Form_Department_Control, Form_Subdivision_Control, Form_Chief_Control, \
+    Group_Form_Permissions
 from apps.workers.models import Department, Subdivision, Chief
-from mixin.user_right import ViewsPermissionsMixin
+from mixin.user_right import WorkersPermissionsViewMixin
 
 
-class Subdivision_View(LoginRequiredMixin, ViewsPermissionsMixin, ListView):
+class Subdivision_View(LoginRequiredMixin, WorkersPermissionsViewMixin, ListView):
     """Управление/Подразделение"""
     model = Subdivision
     template_name = 'workers/organization_structure/subdivision.html'
@@ -30,7 +34,7 @@ class Subdivision_View(LoginRequiredMixin, ViewsPermissionsMixin, ListView):
         return render(self.request, self.template_name, context)
 
 
-class Subdivision_Update(LoginRequiredMixin, ViewsPermissionsMixin, UpdateView):
+class Subdivision_Update(LoginRequiredMixin, WorkersPermissionsViewMixin, UpdateView):
     """Управление/Подразделение"""
     model = Subdivision
     template_name = 'workers/organization_structure/subdivision_control.html'
@@ -50,7 +54,7 @@ class Subdivision_Update(LoginRequiredMixin, ViewsPermissionsMixin, UpdateView):
         return context
 
 
-class Subdivision_Add(LoginRequiredMixin, ViewsPermissionsMixin, CreateView):
+class Subdivision_Add(LoginRequiredMixin, WorkersPermissionsViewMixin, CreateView):
     """Управление/Подразделение"""
     model = Subdivision
     template_name = 'workers/organization_structure/subdivision_control.html'
@@ -66,7 +70,7 @@ class Subdivision_Add(LoginRequiredMixin, ViewsPermissionsMixin, CreateView):
         return context
 
 
-class Department_View(LoginRequiredMixin, ViewsPermissionsMixin, ListView):
+class Department_View(LoginRequiredMixin, WorkersPermissionsViewMixin, ListView):
     """Департамент/Управление"""
     model = Department
     template_name = 'workers/organization_structure/department.html'
@@ -88,7 +92,7 @@ class Department_View(LoginRequiredMixin, ViewsPermissionsMixin, ListView):
         return render(self.request, self.template_name, context)
 
 
-class Department_Update(LoginRequiredMixin, ViewsPermissionsMixin, UpdateView):
+class Department_Update(LoginRequiredMixin, WorkersPermissionsViewMixin, UpdateView):
     """Департамент. Изменение"""
     model = Department
     template_name = 'workers/organization_structure/department_control.html'
@@ -108,7 +112,7 @@ class Department_Update(LoginRequiredMixin, ViewsPermissionsMixin, UpdateView):
         return context
 
 
-class Department_Add(LoginRequiredMixin, ViewsPermissionsMixin, CreateView):
+class Department_Add(LoginRequiredMixin, WorkersPermissionsViewMixin, CreateView):
     """Департамент. Добавление"""
     model = Department
     template_name = 'workers/organization_structure/department_control.html'
@@ -123,7 +127,7 @@ class Department_Add(LoginRequiredMixin, ViewsPermissionsMixin, CreateView):
         return context
 
 
-class Chief_View(LoginRequiredMixin, ViewsPermissionsMixin, ListView):
+class Chief_View(LoginRequiredMixin, WorkersPermissionsViewMixin, ListView):
     """Должность"""
     model = Chief
     template_name = 'workers/organization_structure/chief.html'
@@ -145,7 +149,7 @@ class Chief_View(LoginRequiredMixin, ViewsPermissionsMixin, ListView):
         return render(self.request, self.template_name, context)
 
 
-class Chief_Update(LoginRequiredMixin, ViewsPermissionsMixin, UpdateView):
+class Chief_Update(LoginRequiredMixin, WorkersPermissionsViewMixin, UpdateView):
     """Должность. Изменение"""
     model = Chief
     template_name = 'workers/organization_structure/chief_control.html'
@@ -165,7 +169,7 @@ class Chief_Update(LoginRequiredMixin, ViewsPermissionsMixin, UpdateView):
         return context
 
 
-class Chief_Add(LoginRequiredMixin, ViewsPermissionsMixin, CreateView):
+class Chief_Add(LoginRequiredMixin, WorkersPermissionsViewMixin, CreateView):
     """Должность. Добавление"""
     model = Chief
     template_name = 'workers/organization_structure/chief_control.html'
@@ -178,3 +182,20 @@ class Chief_Add(LoginRequiredMixin, ViewsPermissionsMixin, CreateView):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Добавить должность'
         return context
+
+
+class Group_Permissions(UpdateView):
+    """Управление группами"""
+    model = Group
+    form_class = Group_Form_Permissions
+    template_name = 'workers/workers_settings/group_permissions.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Настройка прав группы'
+        context['group'] = Group.objects.get(pk=self.kwargs['pk'])
+        return context
+
+    def get_success_url(self):
+        messages.success(self.request, "Данные сохранены успешно")
+        return reverse("chief_permissions", kwargs={"pk": self.kwargs['pk']})
