@@ -99,6 +99,3 @@ class UserBasic(AbstractBaseUser, PermissionsMixin):
         ordering = ['pk']
         default_permissions = ('')
 
-        permissions = (
-            ('UserBasic_permission', 'Пользователи. Права доступа.'),
-        )

@@ -1,0 +1,139 @@
+{% extends 'base.html'%}
+{% load static %}
+{% block style %}
+<!-- Select2 -->
+<link rel="stylesheet" href="{% static 'plugins/select2/css/select2.min.css'%}">
+{% endblock %}
+{% block content_header %}
+<li class="breadcrumb-item active">{{title}}</li>
+{% endblock %}
+{% block content %}
+<!-- Поиск -->
+<div class="row">
+    <div class="col-12">
+        <!-- interactive chart -->
+        <div class="card card-primary card-outline">
+            <!-- Заголовок -->
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fa fa-search"></i>
+                    Поиск
+                </h3>
+                <div class="bd-example m-0 border-3 float-right">
+                    <a type="submit" class="btn btn-light btn-xs " href="{% url 'workers'%}">Быстрый поиск</a>
+                    <a type="submit" class="btn btn-primary btn-xs" href="{% url 'workers_filter'%}">Детализированный поиск</a>
+                </div>
+            </div>
+            <div class="card-body">
+                <form action="" method="get">
+                    <div class="row">
+                        <div class="col form-group">{{search_user_filter.subdivision}}</div>
+                        <div class="col form-group">{{search_user_filter.department}}</div>
+                        <div class="col form-group">{{search_user_filter.chief}}</div>
+                        <div class="col-xs form-group ">
+                            <button type="submit" class="btn btn-md btn-default"><i class="fa fa-search"></i></button>
+                        </div>
+                        <div class="col-xs form-group ">
+                            <a href="{% url 'workers_filter'%}" type="submit" class="btn btn-md btn-default">
+                                <i class="fa fa-eraser"></i>
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <!-- /.card-body-->
+        </div>
+        <!-- /.card -->
+    </div>
+    <!-- /.col -->
+</div>
+<!-- /.Поиск -->
+<!-- таблица -->
+<div class="row">
+    <div class="col-12">
+        <!-- interactive chart -->
+        <div class="card">
+            <!-- Заголовок -->
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fa fa-user"></i>
+                    {{title}}
+                </h3>
+                <div class="bd-example m-0 float-right">
+                    {% if perms.workers.subdivision_view %}
+                    <a type="submit" class="btn btn-primary btn-xs " href="{% url 'subdivision'%}">Настройки
+                        управления</a>
+                    {%endif%}
+                    {% if perms.workers.department_view %}
+                    <a type="submit" class="btn btn-primary btn-xs " href="{% url 'department'%}">Настройки отделы</a>
+                    {%endif%}
+                    {% if perms.workers.chief_view %}
+                    <a type="submit" class="btn btn-primary btn-xs " href="{% url 'chief'%}">Настройки должности</a>
+                    {%endif%}
+                    {% if perms.workers.UserWorker_add or perms.workers.UserWorker_add_subdivision or perms.workers.UserWorker_add_all%}
+                    <a type="submit" class="btn btn-success btn-xs " href="{% url 'workers_add' %}">Добавить
+                        сотрудника</a>
+                    {%endif%}
+                </div>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th width="50"></th>
+                        <th>ФИО</th>
+                        <th>Телефон</th>
+                        <th>Почта</th>
+                        <th>Управление</th>
+                        <th>Отдел</th>
+                        <th>Должность</th>
+                        <th style="width: 40px"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for worker in workers%}
+                    <tr>
+                        <td>
+                         {%if worker.user.image_smol %}
+                            <img src="{{worker.user.image_smol.url}}" alt="user-avatar"
+                                 class="img-circle img-bordered-sm" width="30" height="30">
+                            {%else%}
+                            <img src="{% static 'img/avatar_smol.jpg'%}" alt="user-avatar"
+                                 class="img-circle img-bordered-sm" width="30" height="30">
+                            {%endif%}
+                            </a>
+                        </td>
+                        <td>{{worker}}</td>
+                        <td>{{worker.user.phone}}</td>
+                        <td>{{worker.user.email}}</td>
+                        <td>{%if worker.actual_subdivision.name%} {{worker.actual_subdivision.name}}{%endif%}</td>
+                        <td>{%if worker.actual_department.name%}{{worker.actual_department.name}} {%endif%}</td>
+                        <td>{{worker.chief.name}}</td>
+                        <td>
+                            <a class="btn btn-info btn-sm" href="{%url 'workers_detail' worker.user.slug %}">
+                                <i class="fa fa-eye"></i></a>
+                        </td>
+                    </tr>
+                    {%endfor%}
+                    </tbody>
+                </table>
+            </div>
+            <!-- /.card-body-->
+            {% include 'include/pagination.html' %}
+        </div>
+        <!-- /.card -->
+    </div>
+    <!-- /.таблица -->
+</div>
+{% endblock %}
+
+{% block script %}
+<!-- Select2 -->
+<script src="{% static 'plugins/select2/js/select2.full.min.js'%}"></script>
+<script>
+  $(function () {
+    //Initialize Select2 Elements
+    $('.select2').select2();
+  })
+</script>
+{% endblock %}

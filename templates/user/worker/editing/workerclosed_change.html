@@ -1,0 +1,203 @@
+{% extends 'base.html'%}
+{% load static %}
+{% block style %}
+<!-- Tempusdominus Bootstrap 4 -->
+<link rel="stylesheet" href="{% static 'plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css'%}">
+{% endblock %}
+{% block content_header %}
+<li class="breadcrumb-item"><a href="{% url 'workers'%}">Сотрудник</a></li>
+<li class="breadcrumb-item"><a href="{% url 'workers_detail' user.slug%}">{{user}}</a></li>
+<li class="breadcrumb-item active">{{title}}</li>
+{% endblock %}
+{% block content %}
+<!-- таблица -->
+<div class="row">
+    <div class="col-12">
+        <form action="" method="post">
+            {% csrf_token %}
+            <!-- interactive chart -->
+            <div class="card">
+                <!-- Заголовок -->
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fa fa-user"></i>
+                        {{title}}
+                    </h3>
+                </div>
+                {% if messages %}
+                {% for message in messages %}
+                {% if message.tags %}
+                <div class="alert alert-success alert-dismissible">
+                    {{ message }}
+                </div>
+                {% endif %}
+                {% endfor %}
+                {% endif %}
+                <div class="card-body">
+                    <div class="form-group">
+                        <label>{{ form.organization_order_of_employment.label }}:</label>
+                        {{ form.organization_order_of_employment }}
+                    </div>
+                    {% if form.organization_order_of_employment.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.organization_order_of_employment.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.organization_labor_contract.label }}:</label>
+                        {{ form.organization_labor_contract }}
+                    </div>
+                    {% if form.organization_labor_contract.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.organization_labor_contract.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.passport_serial.label }}:</label>
+                        {{ form.passport_serial }}
+                    </div>
+                    {% if form.passport_serial.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.passport_serial.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.passport_number.label }}:</label>
+                        {{ form.passport_number }}
+                    </div>
+                    {% if form.passport_number.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.passport_number.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.passport_passport_issued.label }}:</label>
+                        {{ form.passport_passport_issued }}
+                    </div>
+                    {% if form.passport_passport_issued.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.passport_passport_issued.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.passport_passport_issued_date.label }}:</label>
+                        <div class="input-group date" id="passport_passport_issued_date" data-target-input="nearest">
+                            {{ form.passport_passport_issued_date }}
+                            <div class="input-group-append" data-target="#passport_passport_issued_date" data-toggle="datetimepicker">
+                                <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% if form.passport_passport_issued_date.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.passport_passport_issued_date.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.passport_place_of_issue.label }}:</label>
+                        {{ form.passport_place_of_issue }}
+                    </div>
+                    {% if form.passport_place_of_issue.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.passport_place_of_issue.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.passport_registration.label }}:</label>
+                        {{ form.passport_registration }}
+                    </div>
+                    {% if form.passport_registration.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.passport_registration.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.passport_of_residence.label }}:</label>
+                        {{ form.passport_of_residence }}
+                    </div>
+                    {% if form.passport_of_residence.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.passport_of_residence.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.snils_number.label }}:</label>
+                        {{ form.snils_number }}
+                    </div>
+                    {% if form.snils_number.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.snils_number.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.inn_number.label }}:</label>
+                        {{ form.inn_number }}
+                    </div>
+                    {% if form.inn_number.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.inn_number.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="row no-print">
+                    <div class="col-12">
+                        <a href="{% url 'workers_detail' user.slug%}" rel="noopener" class="btn btn-secondary"><i
+                                class="fas fa fa-reply"></i> Отмена</a>
+                        <button type="submit" class="btn btn-success float-right"><i class="fa fa-user"></i>
+                            Сохранить
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- /.таблица -->
+{% endblock %}
+{% block script %}
+<!-- InputMask -->
+<script src="{% static 'plugins/moment/moment.min.js'%}"></script>
+<script src="{% static 'plugins/inputmask/jquery.inputmask.min.js'%}"></script>
+<!-- Tempusdominus Bootstrap 4 -->
+<script src="{% static 'plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js'%}"></script>
+<script src="{% static 'plugins/moment/ru.js'%}"></script>
+<script>
+$(function () {
+    //Date picker
+    $('#date_form').datetimepicker({
+	    locale: 'ru',
+        format: 'DD.MM.YYYY',
+    });
+    //mask
+    $('[data-mask]').inputmask();
+       //Date picker
+    $('#passport_passport_issued_date').datetimepicker({
+	    locale: 'ru',
+		stepping:10,
+		format: 'L',
+    });
+  })
+</script>
+{% endblock %}

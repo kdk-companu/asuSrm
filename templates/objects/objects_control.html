@@ -1,0 +1,162 @@
+{% extends 'base.html'%}
+{% load static %}
+{% block style %}
+<!-- Select2 -->
+<link rel="stylesheet" href="{% static 'plugins/select2/css/select2.min.css'%}">
+{% endblock %}
+{% block content_header %}
+<li class="breadcrumb-item"><a href="{% url 'objects'%}">Объекты</a></li>
+<li class="breadcrumb-item active">{{title_page}}</li>
+{% endblock %}
+{% block content %}
+<!-- таблица -->
+<div class="row">
+    <div class="col-12">
+        <form action="" method="post">
+            {% csrf_token %}
+            <!-- interactive chart -->
+            <div class="card">
+                <!-- Заголовок -->
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fa fa fa-industry"></i>
+                        {{title}}
+                    </h3>
+                </div>
+                {% if messages %}
+                {% for message in messages %}
+                {% if message.tags %}
+                <div class="alert alert-success alert-dismissible">
+                    {{ message }}
+                </div>
+                {% endif %}
+                {% endfor %}
+                {% endif %}
+                {% if form.non_field_errors%}
+                <div class="alert alert-danger alert-dismissible">
+                    <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+                <div class="card-body">
+                    <div class="form-group">
+                        <label>{{ form.organization.label }}:</label>
+                        {{ form.organization }}
+                    </div>
+                    {% if form.organization.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.organization.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.name.label }}:</label>
+                        {{ form.name }}
+                    </div>
+                    {% if form.name.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.name.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.name_tables.label }}:</label>
+                        {{ form.name_tables }}
+                    </div>
+                    {% if form.name_tables.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.name_tables.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.short_names.label }}:</label>
+                        {{ form.short_names }}
+                    </div>
+                    {% if form.short_names.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.short_names.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.city.label }}:</label>
+                        {{ form.city }}
+                    </div>
+                    {% if form.city.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.city.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.property_location.label }}:</label>
+                        {{ form.property_location }}
+                    </div>
+                    {% if form.property_location.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.property_location.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <div class="custom-control custom-switch">
+                            {{form.pay_weekend}}
+                            <label class="custom-control-label" for="pay_weekend">{{form.pay_weekend.label}}</label>
+                        </div>
+                    </div>
+                    {% if form.pay_weekend.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.pay_weekend.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <div class="custom-control custom-switch">
+                            {{form.pay_processing}}
+                            <label class="custom-control-label"
+                                   for="pay_processing">{{form.pay_processing.label}}</label>
+                        </div>
+                    </div>
+                    {% if form.pay_processing.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.pay_processing.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.description.label }}:</label>
+                        {{ form.description }}
+                    </div>
+                    {% if form.description.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.description.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="row no-print">
+                    <div class="col-12">
+                        <a href="{%url 'objects'%}" rel="noopener" class="btn btn-secondary"><i
+                                class="fas fa fa-reply"></i> Отмена</a>
+                        <button type="submit" class="btn btn-success float-right">
+                            Сохранить
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- /.таблица -->
+{% endblock %}
+{% block script %}
+<!-- Select2 -->
+<script src="{% static 'plugins/select2/js/select2.full.min.js'%}"></script>
+<script>
+$(function () {
+    //Initialize Select2 Elements
+    $('.select2').select2();
+  })
+</script>
+{% endblock %}

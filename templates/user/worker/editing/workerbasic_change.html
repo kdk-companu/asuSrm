@@ -1,0 +1,263 @@
+{% extends 'base.html'%}
+{% load static %}
+{% block style %}
+<!-- Select2 -->
+<link rel="stylesheet" href="{% static 'plugins/select2/css/select2.min.css'%}">
+<link rel="stylesheet" href="{% static 'plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css'%}">
+<!-- Tempusdominus Bootstrap 4 -->
+<link rel="stylesheet" href="{% static 'plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css'%}">
+{% endblock %}
+{% block content_header %}
+<li class="breadcrumb-item"><a href="{% url 'workers'%}">Сотрудники</a></li>
+<li class="breadcrumb-item"><a href="{% url 'workers_detail' user.slug%}">{{user}}</a></li>
+<li class="breadcrumb-item active">{{title}}</li>
+{% endblock %}
+{% block content %}
+<!-- таблица -->
+<div class="row">
+    <div class="col-12">
+        <form action="" method="post">
+            {% csrf_token %}
+            <!-- interactive chart -->
+            <div class="card">
+                <!-- Заголовок -->
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fa fa-user"></i>
+                        {{title}}
+                    </h3>
+                </div>
+                {% if messages %}
+                {% for message in messages %}
+                {% if message.tags %}
+                <div class="alert alert-success alert-dismissible">
+                    {{ message }}
+                </div>
+                {% endif %}
+                {% endfor %}
+                {% endif %}
+                <div class="card-body">
+                    <div class="form-group">
+                        <label>{{ form.organization_subdivision.label }}:</label>
+                        {{ form.organization_subdivision }}
+                    </div>
+                    {% if form.organization_subdivision.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.organization_subdivision.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.organization_department.label }}:</label>
+                        {{ form.organization_department }}
+                    </div>
+                    {% if form.organization_department.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.organization_department.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.actual_subdivision.label }}:</label>
+                        {{ form.actual_subdivision }}
+                    </div>
+                    {% if form.actual_subdivision.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.actual_subdivision.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.actual_department.label }}:</label>
+                        {{ form.actual_department }}
+                    </div>
+                    {% if form.actual_department.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.actual_department.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.chief.label }}:</label>
+                        {{ form.chief }}
+                    </div>
+                    {% if form.chief.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.chief.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.date_employment.label }}:</label>
+                        <div class="input-group date" id="date_employment" data-target-input="nearest">
+                            {{ form.date_employment }}
+                            <div class="input-group-append" data-target="#date_employment" data-toggle="datetimepicker">
+                                <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% if form.date_employment.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.date_employment.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.date_chief.label }}:</label>
+                        <div class="input-group date" id="date_chief" data-target-input="nearest">
+                            {{ form.date_chief }}
+                            <div class="input-group-append" data-target="#date_chief" data-toggle="datetimepicker">
+                                <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% if form.date_chief.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.date_chief.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.employee_date.label }}:</label>
+                        <div class="input-group date" id="employee_date" data-target-input="nearest">
+                            {{ form.employee_date }}
+                            <div class="input-group-append" data-target="#employee_date" data-toggle="datetimepicker">
+                                <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% if form.employee_date.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.employee_date.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.date_birth.label }}:</label>
+                        <div class="input-group date" id="date_birth" data-target-input="nearest">
+                            {{ form.date_birth }}
+                            <div class="input-group-append" data-target="#date_birth" data-toggle="datetimepicker">
+                                <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% if form.date_birth.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.date_birth.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.number_ga.label }}:</label>
+                        {{ form.number_ga }}
+                    </div>
+                    {% if form.number_ga.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.number_ga.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.home_address.label }}:</label>
+                        {{ form.home_address }}
+                    </div>
+                    {% if form.home_address.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.home_address.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.home_metro.label }}:</label>
+                        {{ form.home_metro }}
+                    </div>
+                    {% if form.home_metro.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.home_metro.errors }}
+                    </div>
+                    {% endif %}
+
+                    <div class="form-group">
+                        <label>{{ form.gender.label }}:</label>
+                        {{ form.gender }}
+                    </div>
+                    {% if form.gender.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.gender.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="row no-print">
+                    <div class="col-12">
+                        <a href="{% url 'workers_detail' user.slug%}" rel="noopener" class="btn btn-secondary"><i
+                                class="fas fa fa-reply"></i> Отмена</a>
+                        <button type="submit" class="btn btn-success float-right"><i class="fa fa-user"></i>
+                            Сохранить
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- /.таблица -->
+{% endblock %}
+{% block script %}
+<!-- Select2 -->
+<script src="{% static 'plugins/select2/js/select2.full.min.js'%}"></script>
+<!-- InputMask -->
+<script src="{% static 'plugins/moment/moment.min.js'%}"></script>
+<script src="{% static 'plugins/inputmask/jquery.inputmask.min.js'%}"></script>
+<!-- Tempusdominus Bootstrap 4 -->
+<script src="{% static 'plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js'%}"></script>
+<script src="{% static 'plugins/moment/ru.js'%}"></script>
+<script>
+$(function () {
+    //Initialize Select2 Elements
+    $('.select2').select2();
+    //Date picker
+    $('#date_form').datetimepicker({
+	    locale: 'ru',
+        format: 'DD.MM.YYYY',
+    });
+    //mask
+    $('[data-mask]').inputmask();
+       //Date picker
+    $('#date_employment').datetimepicker({
+	    locale: 'ru',
+		stepping:10,
+		format: 'L',
+    });
+    $('#date_chief').datetimepicker({
+	    locale: 'ru',
+		stepping:10,
+		format: 'L',
+    });
+    $('#employee_date').datetimepicker({
+	    locale: 'ru',
+		stepping:10,
+		format: 'L',
+    });
+    $('#date_birth').datetimepicker({
+	    locale: 'ru',
+		stepping:10,
+		format: 'L',
+    });
+  })
+</script>
+{% endblock %}

@@ -1,0 +1,162 @@
+{% extends 'base.html'%}
+{% load static %}
+{% block style %}
+<!-- Select2 -->
+<link rel="stylesheet" href="{% static 'plugins/select2/css/select2.min.css'%}">
+<link rel="stylesheet" href="{% static 'plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css'%}">
+<!-- Tempusdominus Bootstrap 4 -->
+<link rel="stylesheet" href="{% static 'plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css'%}">
+<link rel="stylesheet" href="{% static 'css/adminlte.css'%}">
+{% endblock %}
+{% block content_header %}
+<li class="breadcrumb-item"><a href="{% url 'workers_planning'%}">Планирование работ</a></li>
+<li class="breadcrumb-item"><a href="{% url 'workers_missing'%}">Отсутствие сотрудников</a></li>
+<li class="breadcrumb-item active">{{title_page}}</li>
+{% endblock %}
+{% block content %}
+<!-- таблица -->
+<div class="row">
+    <div class="col-12">
+        <form action="" method="post">
+            {% csrf_token %}
+            <!-- interactive chart -->
+            <div class="card">
+                <!-- Заголовок -->
+                <div class="card-header">
+                    <h3 class="card-title">
+                        {{title}}
+                    </h3>
+                </div>
+                {% if messages %}
+                {% for message in messages %}
+                {% if message.tags %}
+                <div class="alert alert-success alert-dismissible">
+                    {{ message }}
+                </div>
+                {% endif %}
+                {% endfor %}
+                {% endif %}
+                {% if form.non_field_errors%}
+                <div class="alert alert-danger alert-dismissible">
+                    <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+                <div class="card-body">
+                    <div class="form-group">
+                        <label>{{ form.user.label }}:</label>
+                        {{ form.user }}
+                    </div>
+                    {% if form.user.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.user.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.information_missing.label }}:</label>
+                        {{ form.information_missing }}
+                    </div>
+                    {% if form.information_missing.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.information_missing.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.date_start.label }}:</label>
+                        <div class="input-group date" id="date_start" data-target-input="nearest">
+                            {{ form.date_start }}
+                            <div class="input-group-append" data-target="#date_start" data-toggle="datetimepicker">
+                                <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% if form.date_start.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.date_start.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.date_end.label }}:</label>
+                        <div class="input-group date" id="date_end" data-target-input="nearest">
+                            {{ form.date_end }}
+                            <div class="input-group-append" data-target="#date_end" data-toggle="datetimepicker">
+                                <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% if form.date_end.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.date_end.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.comments.label }}:</label>
+                        {{ form.comments }}
+                    </div>
+                    {% if form.comments.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.comments.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="row no-print">
+                    <div class="col-12">
+                        <a href="{% url 'workers_missing'%}" rel="noopener" class="btn btn-secondary"><i
+                                class="fas fa fa-reply"></i> Отмена</a>
+                        <button type="submit" class="btn btn-success float-right">
+                            Сохранить
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- /.таблица -->
+{% endblock %}
+{% block script %}
+<!-- jQuery -->
+<script src="{% static 'plugins/jquery/jquery.min.js'%}"></script>
+<!-- Select2 -->
+<script src="{% static 'plugins/select2/js/select2.full.min.js'%}"></script>
+<!-- InputMask -->
+<script src="{% static 'plugins/moment/moment.min.js'%}"></script>
+<script src="{% static 'plugins/inputmask/jquery.inputmask.min.js'%}"></script>
+<!-- Tempusdominus Bootstrap 4 -->
+<script src="{% static 'plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js'%}"></script>
+<script src="{% static 'plugins/moment/ru.js'%}"></script>
+<script>
+$(function () {
+    //Initialize Select2 Elements
+    $('.select2').select2();
+    //Date picker
+    $('#date_form').datetimepicker({
+	    locale: 'ru',
+        format: 'DD.MM.YYYY',
+    });
+    //mask
+    $('[data-mask]').inputmask();
+       //Date picker
+    $('#date_start').datetimepicker({
+	    locale: 'ru',
+		stepping:10,
+		format: 'L',
+    });
+    $('#date_end').datetimepicker({
+	    locale: 'ru',
+		stepping:10,
+		format: 'L',
+    });
+  })
+</script>
+{% endblock %}

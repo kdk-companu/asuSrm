@@ -8,12 +8,13 @@ from django.urls import reverse_lazy
 class UserLogin(LoginView):
     form_class = AuthenticationForm
     template_name = 'login.html'
-    success_url = reverse_lazy('workers')
+    success_url = reverse_lazy('index')
 
     def get(self, *args, **kwargs):
         # Перекидывать по ленивым ссылкам
+
         if self.request.user.is_authenticated:
-            return redirect('base_page', permanent=True)
+            return redirect('index', permanent=True)
 
         context = self.get_context_data(**kwargs)
         return self.render_to_response(context)

@@ -1,0 +1,347 @@
+{% extends 'base.html'%}
+{% load static %}
+{% block content_header %}
+<li class="breadcrumb-item"><a href="{% url 'workers'%}">Сотрудники</a></li>
+<li class="breadcrumb-item active">{{title}}</li>
+{% endblock %}
+{% block content %}
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-3">
+                <!-- Profile Image -->
+                <div class="card card-primary card-outline">
+                    <div class="card-body box-profile">
+                        <div class="text-center">
+                            {%if worker.image %}
+                            <img src="{{worker.image.url}}" alt="user-avatar"
+                                 class="img-circle img-bordered-sm">
+                            {%else%}
+                            <img src="{% static 'img/avatar.jpg'%}" alt="user-avatar"
+                                 class="img-circle img-bordered-sm" width="300" height="300">
+                            {%endif%}
+                        </div>
+                        <h4 class="profile-username text-center">{{worker}}</h4>
+                        <p class="text-muted text-center">{{basic.chief.name}}</p>
+                        {%if permission_worker_change%}
+                        <a href="{% url 'workers_image' worker.slug %}" class="btn btn-primary btn-block"><b>Изменить
+                            иконку</b></a>
+                        {%endif%}
+                        {%if permission_worker_change_permission%}
+                        <a href="{% url 'workers_permissions' worker.slug %}" class="btn btn-primary btn-block"><b>Изменить
+                            права доступа</b></a>
+                        {%endif%}
+                        {% if permission_user_сurrent%}
+                        <a href="{% url 'workers_change_password'%}" class="btn btn-primary btn-block"><b>Изменить
+                            пароль</b></a>
+                        {% endif %}
+                        {% if permission_worker_change_password %}
+                        <a href="{% url 'workers_update_password' worker.slug %}" class="btn btn-primary btn-block"><b>Восстановить
+                            пароль</b></a>
+                        {% endif %}
+                         {% if permission_missing %}
+                        <a href="{% url 'workers_missing_userHis' worker.slug %}" class="btn btn-primary btn-block"><b>Отсутствие на работе</b></a>
+                        {% endif %}
+                    </div>
+                    <!-- /.card-body -->
+                </div>
+                <!-- /.card -->
+            </div>
+            <!-- /.col -->
+            <div class="col-md-9">
+                <div class="card">
+                    <div class="card-header p-2">
+                        <h3 class="card-title">
+                            Информация
+                        </h3>
+                        {%if permission_worker_change%}
+                        <div class="bd-example m-0 border-3 float-right">
+                            <a type="submit" class="btn btn-primary btn-xs "
+                               href="{% url 'workers_change' worker.slug %}">Редактировать</a>
+                        </div>
+                        {%endif%}
+                    </div><!-- /.card-header -->
+                    <div class="card-body">
+                        <dl class="row">
+                            <dt class="col-sm-2">Телефон :</dt>
+                            <dd class="col-sm-10">{{worker.phone}}</dd>
+                            <dt class="col-sm-2">Почта :</dt>
+                            <dd class="col-sm-10">{% if worker.email%}{{worker.email}}{%else%}Не указана{%endif%}</dd>
+                        </dl>
+                    </div>
+                </div>
+                <!-- /.card -->
+                {%if basic%}
+                <div class="card">
+                    <div class="card-header p-2">
+                        <h3 class="card-title">
+                            Базовая информация
+                        </h3>
+                        {% if permission_workerBasic_change %}
+                        <div class="bd-example m-0 border-3 float-right">
+                            <a type="submit" class="btn btn-primary btn-xs "
+                               href="{% url 'workers_basic_change' worker.slug %}">Редактировать</a>
+                        </div>
+                        {%endif%}
+                    </div><!-- /.card-header -->
+                    <div class="card-body">
+                        <dl class="row">
+                            <dt class="col-sm-3">Управление в организации :</dt>
+                            <dd class="col-sm-9">
+                                {% if basic.organization_subdivision.name%}
+                                {{basic.organization_subdivision.name}}
+                                {%else%}Не указано{%endif%}
+                            </dd>
+                            <dt class="col-sm-3">Отдел в организации :</dt>
+                            <dd class="col-sm-9">
+                                {% if basic.organization_department.name%}
+                                {{basic.organization_department.name}}
+                                {%else%}Не
+                                указан{%endif%}
+                            </dd>
+                            <dt class="col-sm-3">Фактическое Управление :</dt>
+                            <dd class="col-sm-9">
+                                {% if basic.actual_subdivision.name%}
+                                {{basic.actual_subdivision.name}}
+                                {%else%}Не указано{%endif%}
+                            </dd>
+                            <dt class="col-sm-3">Фактический отдел :</dt>
+                            <dd class="col-sm-9">
+                                {% if basic.actual_department.name%}
+                                {{basic.actual_department.name}}
+                                {%else%}Не указан{%endif%}
+                            </dd>
+                            <dt class="col-sm-3">Должность :</dt>
+                            <dd class="col-sm-9">
+                                {% if basic.chief.name%}{{basic.chief.name}}{%else%}Не указана{%endif%}
+                            </dd>
+                            <dt class="col-sm-3">Дата трудоустройства :</dt>
+                            <dd class="col-sm-9">
+                                {% if basic.date_employment%}{{basic.date_employment}}{%else%}Не указана{%endif%}
+                            </dd>
+                            <dt class="col-sm-3">Дата в должности :</dt>
+                            <dd class="col-sm-9">
+                                {% if basic.date_chief%}{{basic.date_chief}}{%else%}Не указана{%endif%}
+                            </dd>
+                            <dt class="col-sm-3">Дата увольнения :</dt>
+                            <dd class="col-sm-9">
+                                {% if basic.employee_date%}{{basic.employee_date}}{%else%}Не указана{%endif%}
+                            </dd>
+                            <dt class="col-sm-3">Номер табеля :</dt>
+                            <dd class="col-sm-9">
+                                {% if basic.number_ga%}{{basic.number_ga}}{%else%}Не указан{%endif%}
+                            </dd>
+                            <dt class="col-sm-3">Домашний адрес :</dt>
+                            <dd class="col-sm-9">
+                                {% if basic.home_address%}{{basic.home_address}}{%else%}Не указан{%endif%}
+                            </dd>
+                            <dt class="col-sm-3">Ближайшее метро :</dt>
+                            <dd class="col-sm-9">
+                                {% if basic.home_metro%}{{basic.home_metro}}{%else%}Не указано{%endif%}
+                            </dd>
+                            <dt class="col-sm-3">Пол :</dt>
+                            <dd class="col-sm-9">
+                                {% if basic.get_gender_display%}{{basic.get_gender_display}}{%else%}Не указан{%endif%}
+                            </dd>
+                            <dt class="col-sm-3">Статус сотрудника :</dt>
+                            <dd class="col-sm-9">
+                                {{basic.get_employee_display}}
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+                {%endif%}
+                <!-- /.card -->
+                {%if closed%}
+                <div class="card">
+                    <div class="card-header p-2">
+                        <h3 class="card-title">
+                            Закрытая информация
+                        </h3>
+                        {% if permission_workerClosed_change %}
+                        <div class="bd-example m-0 border-3 float-right">
+                            <a type="submit" class="btn btn-primary btn-xs "
+                               href="{% url 'workers_closed_change' worker.slug%}">Редактировать</a>
+                        </div>
+                        {%endif%}
+                    </div><!-- /.card-header -->
+                    <div class="card-body">
+                        <dl class="row">
+                            <dt class="col-sm-3">Приказ о трудоустройстве :</dt>
+                            <dd class="col-sm-9">
+                                {% if closed.organization_order_of_employment%}
+                                {{closed.organization_order_of_employment}}
+                                {%else%}Не указан{%endif%}
+                            </dd>
+                            <dt class="col-sm-3">Трудовой договор :</dt>
+                            <dd class="col-sm-9">
+                                {% if closed.organization_labor_contract%}
+                                {{closed.organization_labor_contract}}
+                                {%else%}Не указан{%endif%}
+                            </dd>
+                            <dt class="col-sm-3">Паспорт Серия :</dt>
+                            <dd class="col-sm-9">
+                                {% if closed.passport_serial%}
+                                {{closed.passport_serial}}
+                                {%else%}Не указан{%endif%}
+                            </dd>
+                            <dt class="col-sm-3">Паспорт Номер :</dt>
+                            <dd class="col-sm-9">
+                                {% if closed.passport_number%}
+                                {{closed.passport_number}}
+                                {%else%}Не указан{%endif%}
+                            </dd>
+                            <dt class="col-sm-3">Паспорт Выдан :</dt>
+                            <dd class="col-sm-9">
+                                {% if closed.passport_passport_issued%}
+                                {{closed.passport_passport_issued}}
+                                {%else%}Не указано{%endif%}
+                            </dd>
+                            <dt class="col-sm-3">Паспорт Дата выдачи:</dt>
+                            <dd class="col-sm-9">
+                                {% if closed.passport_passport_issued_date%}
+                                {{closed.passport_passport_issued_date}}
+                                {%else%}Не указана{%endif%}
+                            </dd>
+                            <dt class="col-sm-3">Паспорт Код подразделения:</dt>
+                            <dd class="col-sm-9">
+                                {% if closed.passport_place_of_issue%}
+                                {{closed.passport_place_of_issue}}
+                                {%else%}Не указан{%endif%}
+                            </dd>
+                            <dt class="col-sm-3">Паспорт Место выдачи:</dt>
+                            <dd class="col-sm-9">
+                                {% if closed.passport_registration%}
+                                {{closed.passport_registration}}
+                                {%else%}Не указана{%endif%}
+                            </dd>
+                            <dt class="col-sm-3">Паспорт Прописка:</dt>
+                            <dd class="col-sm-9">
+                                {% if closed.passport_of_residence%}
+                                {{closed.passport_of_residence}}
+                                {%else%}Не указана{%endif%}
+                            </dd>
+                            <dt class="col-sm-3">Паспорт скан:</dt>
+                            <dd class="col-sm-9">
+                                {% if closed.passport_scan%}
+                                    <a type="submit" class="btn btn-success btn-xs "
+                                       href="{{closed.passport_scan.url}}">Скачать</a>
+                                    {% if permission_workerClosed_change %}
+                                        <a type="submit" class="btn btn-primary btn-xs "
+                                           href="{% url 'workers_passport' worker.slug %}">Редактировать</a>
+                                        <a type="submit" class="btn btn-danger btn-xs "
+                                           href="{% url 'workers_passport_delete' worker.slug %}">Удалить</a>
+                                    {%endif%}
+                                {%else%}
+                                    {% if permission_workerClosed_change %}
+                                        <a type="submit" class="btn btn-primary btn-xs "
+                                           href="{% url 'workers_passport' worker.slug %}">Добавить</a>
+                                    {%else%}
+                                        Не добавлен
+                                    {%endif%}
+                                {%endif%}
+                            </dd>
+                            <dt class="col-sm-3">СНИЛС номер:</dt>
+                            <dd class="col-sm-9">
+                                {% if closed.snils_number%}{{closed.snils_number}}{%else%}Не указан{%endif%}
+                            </dd>
+                            <dt class="col-sm-3">СНИЛС скан:</dt>
+                            <dd class="col-sm-9">
+                                {% if closed.snils_scan%}
+                                <a type="submit" class="btn btn-success btn-xs "
+                                   href="{{closed.snils_scan.url}}">Скачать</a>
+                                {% if permission_workerClosed_change %}
+                                <a type="submit" class="btn btn-primary btn-xs "
+                                   href="{% url 'workers_snils' worker.slug %}">Редактировать</a>
+                                <a type="submit" class="btn btn-danger btn-xs "
+                                   href="{% url 'workers_snils_delete' worker.slug %}">Удалить</a>
+                                {%endif%}
+                                {%else%}
+                                    {% if permission_workerClosed_change %}
+                                    <a type="submit" class="btn btn-primary btn-xs "
+                                       href="{% url 'workers_snils' worker.slug %}">Добавить</a>
+                                    {%else%}
+                                        Не добавлен
+                                    {%endif%}
+                                {%endif%}
+                            </dd>
+                            <dt class="col-sm-3">Инн номер:</dt>
+                            <dd class="col-sm-9">
+                                {% if closed.inn_number%}{{closed.inn_number}}{%else%}Не указан{%endif%}
+                            </dd>
+                            <dt class="col-sm-3">Инн скан:</dt>
+                            <dd class="col-sm-9">
+                                {% if closed.inn_scan%}
+                                <a type="submit" class="btn btn-success btn-xs "
+                                   href="{{closed.inn_scan.url}}">Скачать</a>
+                                {% if permission_workerClosed_change %}
+                                <a type="submit" class="btn btn-primary btn-xs "
+                                   href="{% url 'workers_inn' worker.slug %}">Редактировать</a>
+
+                                <a type="submit" class="btn btn-danger btn-xs "
+                                   href="{% url 'workers_inn_delete' worker.slug %}">Удалить</a>
+                                {%endif%}
+                                {%else%}
+                                    {% if permission_workerClosed_change %}
+                                    <a type="submit" class="btn btn-primary btn-xs "
+                                       href="{% url 'workers_inn' worker.slug %}">Добавить</a>
+                                    {%else%}
+                                        Не добавлен
+                                    {%endif%}
+                                {%endif%}
+                            </dd>
+                            <dt class="col-sm-3">Пакет документов:</dt>
+                            <dd class="col-sm-9">
+                                {% if closed.archive_documents_employment%}
+                                <a type="submit" class="btn btn-success btn-xs "
+                                   href="{{closed.archive_documents_employment.url}}">Скачать</a>
+                                {% if permission_workerClosed_change %}
+                                <a type="submit" class="btn btn-primary btn-xs "
+                                   href="{% url 'workers_archive' worker.slug %}">Редактировать</a>
+                                <a type="submit" class="btn btn-danger btn-xs "
+                                   href="{% url 'workers_archive_delete' worker.slug %}">Удалить</a>
+                                {%endif%}
+                                {%else%}
+                                    {% if permission_workerClosed_change %}
+                                    <a type="submit" class="btn btn-primary btn-xs "
+                                       href="{% url 'workers_archive' worker.slug %}">Добавить</a>
+                                    {%else%}
+                                        Не добавлен
+                                    {%endif%}
+                                {%endif%}
+                            </dd>
+                            <dt class="col-sm-3">Пример подписи:</dt>
+                            <dd class="col-sm-9">
+                                {% if closed.signature_example%}
+                                <a type="submit" class="btn btn-success btn-xs "
+                                   href="{{closed.signature_example.url}}">Скачать</a>
+                                {% if permission_workerClosed_change %}
+                                <a type="submit" class="btn btn-primary btn-xs "
+                                   href="{% url 'workers_signature' worker.slug %}">Редактировать</a>
+
+                                <a type="submit" class="btn btn-danger btn-xs "
+                                   href="{% url 'workers_signature_delete' worker.slug %}">Удалить</a>
+                                {%endif%}
+                                {%else%}
+                                    {% if permission_workerClosed_change %}
+                                    <a type="submit" class="btn btn-primary btn-xs "
+                                       href="{% url 'workers_signature' worker.slug %}">Добавить</a>
+                                    {%else%}
+                                        Не добавлен
+                                    {%endif%}
+                                {%endif%}
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+                {%endif%}
+                <!-- /.card -->
+            </div>
+            <!-- /.col -->
+        </div>
+        <!-- /.row -->
+    </div><!-- /.container-fluid -->
+</section>
+<!-- /.content -->
+{% endblock %}

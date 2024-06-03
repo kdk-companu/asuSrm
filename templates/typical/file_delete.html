@@ -1,8 +1,7 @@
 {% extends 'base.html'%}
 {% load static %}
 {% block content_header %}
-<li class="breadcrumb-item"><a href="#">Главная</a></li>
-<li class="breadcrumb-item"><a href="{% url 'workers'%}">Пользователи</a></li>
+<li class="breadcrumb-item"><a href="{% url 'workers'%}">Сотрудники</a></li>
 <li class="breadcrumb-item"><a href="{%url 'workers_detail' file.user.slug%}">{{ file.user }}</a></li>
 <li class="breadcrumb-item active">{{title}}</li>
 {% endblock %}

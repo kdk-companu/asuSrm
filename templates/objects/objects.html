@@ -1,0 +1,110 @@
+{% extends 'base.html'%}
+{% load static %}
+{% block style %}
+<!-- Select2 -->
+<link rel="stylesheet" href="{% static 'plugins/select2/css/select2.min.css'%}">
+{% endblock %}
+{% block content_header %}
+<li class="breadcrumb-item active">{{title}}</li>
+{% endblock %}
+{% block content %}
+<!-- Поиск -->
+<div class="row">
+    <div class="col-12">
+        <!-- interactive chart -->
+        <div class="card card-primary card-outline">
+            <!-- Заголовок -->
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fa fa-search"></i>
+                    Поиск
+                </h3>
+            </div>
+            <div class="card-body">
+                <form action="" method="get">
+                    <div class="row">
+                        <div class="col form-group">{{form_filter.organization}}</div>
+                        <div class="col-xs form-group ">
+                            <button type="submit" class="btn btn-md btn-default"><i class="fa fa-search"></i></button>
+                        </div>
+                        <div class="col-xs form-group ">
+                            <a href="{% url 'objects'%}" type="submit" class="btn btn-md btn-default">
+                                <i class="fa fa-eraser"></i>
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <!-- /.card-body-->
+        </div>
+        <!-- /.card -->
+    </div>
+    <!-- /.col -->
+</div>
+<!-- /.Поиск -->
+<!-- таблица -->
+<div class="row">
+    <div class="col-12">
+        <!-- interactive chart -->
+        <div class="card">
+            <!-- Заголовок -->
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fa fa fa-industry"></i>
+                    {{title}}
+                </h3>
+                <div class="bd-example m-0 float-right">
+                    {% if perms.workers.organizationExploitation_view %}
+                    <a type="submit" class="btn btn-primary btn-xs " href="{% url 'organizationExploitation'%}">Настройки
+                        организаций</a>
+                    {%endif%}
+                    {% if perms.workobjects.organizationsObjects_add %}
+                    <a type="submit" class="btn btn-success btn-xs " href="{% url 'objects_add' %}">Добавить объект</a>
+                    {%endif%}
+                </div>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>Эксплуатирующая организация</th>
+                        <th>Название объекта</th>
+                        <th>Обиходные название</th>
+                        <th>Ближайший город</th>
+                        <th style="width: 40px"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for object in objects%}
+                    <tr>
+                        <td>{{object.organization}}</td>
+                        <td>{{object.name}}</td>
+                        <td>{{object.short_names}}</td>
+                        <td>{{object.city}}</td>
+                        <td>
+                            <a class="btn btn-info btn-sm" href="{% url 'objects_update' object.slug %}">
+                                <i class="fas fa-pencil-alt"></i></a>
+                        </td>
+                    </tr>
+                    {%endfor%}
+                    </tbody>
+                </table>
+            </div>
+            <!-- /.card-body-->
+            {% include 'include/pagination.html' %}
+        </div>
+        <!-- /.card -->
+    </div>
+    <!-- /.таблица -->
+</div>
+{% endblock %}
+{% block script %}
+<!-- Select2 -->
+<script src="{% static 'plugins/select2/js/select2.full.min.js'%}"></script>
+<script>
+  $(function () {
+    //Initialize Select2 Elements
+    $('.select2').select2();
+  })
+</script>
+{% endblock %}

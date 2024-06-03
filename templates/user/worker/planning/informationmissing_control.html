@@ -1,0 +1,92 @@
+{% extends 'base.html'%}
+{% load static %}
+{% block style %}
+<link rel="stylesheet" href="{% static 'plugins/bootstrap-colorpicker/css/bootstrap-colorpicker.min.css'%}">
+{% endblock %}
+{% block content_header %}
+<li class="breadcrumb-item"><a href="{% url 'workers_planning'%}">Планирование работ</a></li>
+<li class="breadcrumb-item"><a href="{% url 'informationmissing'%}">Причины отсутствия на работе</a></li>
+<li class="breadcrumb-item active">{{title_page}}</li>
+{% endblock %}
+{% block content %}
+<!-- таблица -->
+<div class="row">
+    <div class="col-12">
+        <form action="" method="post">
+            {% csrf_token %}
+            <!-- interactive chart -->
+            <div class="card">
+                <!-- Заголовок -->
+                <div class="card-header">
+                    <h3 class="card-title">
+                        {{title}}
+                    </h3>
+                </div>
+                {% if messages %}
+                {% for message in messages %}
+                {% if message.tags %}
+                <div class="alert alert-success alert-dismissible">
+                    {{ message }}
+                </div>
+                {% endif %}
+                {% endfor %}
+                {% endif %}
+                <div class="card-body">
+                    <div class="form-group">
+                        <label>{{ form.name.label }}:</label>
+                        {{ form.name }}
+                    </div>
+                    {% if form.name.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.name.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>{{ form.color.label }}:</label>
+                        <div class="input-group my-colorpicker2">
+                            {{ form.color }}
+                            <div class="input-group-append">
+                                <span class="input-group-text"><i class="fas fa-square"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                    {% if form.color.errors%}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                        {{ form.color.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="row no-print">
+                    <div class="col-12">
+                        <a href="{%url 'informationmissing'%}" rel="noopener" class="btn btn-secondary"><i
+                                class="fas fa fa-reply"></i> Отмена</a>
+                        <button type="submit" class="btn btn-success float-right">
+                            Сохранить
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- /.таблица -->
+{% endblock %}
+{% block script %}
+<!-- Bootstrap 4 -->
+<script src="{% static 'plugins/bootstrap/js/bootstrap.bundle.min.js'%}"></script>
+<!-- bootstrap color picker -->
+<script src="{% static 'plugins/bootstrap-colorpicker/js/bootstrap-colorpicker.min.js'%}"></script>
+<script>
+  $(function () {
+    //color picker with addon
+    $('.my-colorpicker2').colorpicker()
+    $('.my-colorpicker2').on('colorpickerChange', function(event) {
+      $('.my-colorpicker2 .fa-square').css('color', event.color.toString());
+    })
+  })
+</script>
+{% endblock %}

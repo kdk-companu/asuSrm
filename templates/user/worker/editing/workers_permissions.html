@@ -1,0 +1,106 @@
+{% extends 'base.html'%}
+{% load static %}
+{% block content_header %}
+<li class="breadcrumb-item"><a href="{% url 'workers'%}">Сотрудники</a></li>
+<li class="breadcrumb-item active">{{title}}</li>
+{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-12 col-sm-6 col-md-6 d-flex align-items-stretch flex-column">
+        <div class="card bg-light d-flex flex-fill">
+            <div class="card-header p-2">
+                <h3 class="card-title">
+                    Дополнительные права
+                </h3>
+            </div>
+            <div class="card-body pt-0">
+                <div class="row">
+                    <div class="col-12">
+                        <ul class="ml-0 mb-0 fa-ul ">
+                            {% for key,value in worker_permissions.items %}
+                            <li>{{value}}</li>
+                            {%endfor%}
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-6 d-flex align-items-stretch flex-column">
+        <div class="card bg-light d-flex flex-fill">
+            <div class="card-header p-2">
+                <h3 class="card-title">
+                    Ваши права должности
+                </h3>
+            </div>
+            <div class="card-body pt-0">
+                <div class="row">
+                    <div class="col-12">
+                        <ul class="ml-0 mb-0 fa-ul ">
+                            {% for key,value in worker_group_permissions.items %}
+                            <li>{{value}}</li>
+                            {%endfor%}
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-6 d-flex align-items-stretch flex-column">
+        <div class="card bg-light d-flex flex-fill">
+            <div class="card-header p-2">
+                <h3 class="card-title">
+                    Добавить дополнительные права
+                </h3>
+            </div>
+            <div class="card-body pt-0">
+                <div class="row">
+                    <div class="col-12">
+                        <ul class="ml-0 mb-0 fa-ul ">
+                            <form method="post">
+                                {% csrf_token %}
+                                {% for key,value in user_add_permissions.items %}
+                                <li>
+                                     <button type="submit" name="permission_add" value="{{key}}" class="btn btn-success btn-xs">Добавить</button>
+                                    {{value}}
+                                </li>
+                                {%endfor%}
+                            </form>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-6 d-flex align-items-stretch flex-column">
+        <div class="card bg-light d-flex flex-fill">
+            <div class="card-header p-2">
+                <h3 class="card-title">
+                    Исключить дополнительные права
+                </h3>
+            </div>
+            <div class="card-body pt-0">
+                <div class="row">
+                    <div class="col-12">
+                        <ul class="ml-0 mb-0 fa-ul ">
+                            <form method="post">
+                                {% csrf_token %}
+                                {% for key,value in user_remove_permissions.items %}
+                                <li>
+                                    <button type="submit" name="permission_remove" value="{{key}}" class="btn btn-danger btn-xs ">Удалить</button>
+                                    {{value}}
+                                </li>
+                                {%endfor%}
+                            </form>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,201 @@
+{% extends 'base.html'%}
+{% load static %}
+{% block style %}
+<!-- Select2 -->
+<link rel="stylesheet" href="{% static 'plugins/select2/css/select2.min.css'%}">
+<style>
+.mission {
+	width: 100%;
+	border: none;
+	font-size: 12px;
+}
+.mission thead{
+    font-weight: bold;
+	text-align: center;
+	border: 1px solid black;
+	padding: 1px 1px;
+	background: #d8d8d8;
+	font-size: 12px;
+}
+.mission thead tr th{
+	border: 1px solid black;
+	background: #d8d8d8;
+
+}
+.mission-tr{
+    width: 50px;
+}
+.mission tbody td {
+	text-align: center;
+	border: 1px solid black;
+	padding: 1px 1px;
+	font-size: 12px;
+	vertical-align: top;
+}
+.mission tbody tr:nth-child(even){
+	background: #f3f3f3;
+}
+.mission tbody tr td:first-child {
+	border-radius: 8px 0 0 8px;
+}
+.mission tbody tr td:last-child {
+	border-radius: 0 0px 0px 0;
+}
+
+</style>
+{% endblock %}
+{% block content_header %}
+<li class="breadcrumb-item active">{{title}}</li>
+{% endblock %}
+{% block content %}
+<!-- Поиск -->
+<div class="row">
+    <div class="col-12">
+        <!-- interactive chart -->
+        <div class="card card-primary card-outline">
+            <!-- Заголовок -->
+            <div class="card-body">
+                {% if form_filter.errors%}
+                <div class="alert alert-danger alert-dismissible">
+                    <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
+                    {{ form_filter.errors }}
+                </div>
+                {% endif %}
+                <form action="" method="get">
+                    <div class="row">
+                        <div class="col form-group">{{form_filter.workers}}</div>
+                        <div class="col form-group">{{form_filter.month}}</div>
+                        <div class="col form-group">{{form_filter.year}}</div>
+                        <div class="col-xs form-group ">
+                            <button type="submit" class="btn btn-md btn-default"><i class="fa fa-search"></i></button>
+                        </div>
+                        <div class="col-xs form-group ">
+                            <a href="{% url 'workers_planning'%}" type="submit" class="btn btn-md btn-default">
+                                <i class="fa fa-eraser"></i>
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <!-- /.card-body-->
+        </div>
+        <!-- /.card -->
+    </div>
+    <!-- /.col -->
+</div>
+<!-- таблица -->
+<div class="row">
+    <div class="col-12">
+        <!-- interactive chart -->
+        <div class="card">
+            <!-- Заголовок -->
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fa fa-user"></i>
+                    {{title}}
+                </h3>
+                <div class="bd-example m-0 float-right">
+                    {% if perms.workers.subdivision_view %}
+                    <a type="submit" class="btn btn-primary btn-xs " href="{% url 'informationmissing'%}">Настройки
+                        причины отсутствия</a>
+                    {%endif%}
+                    {% if perms.workers.department_view %}
+                    <a type="submit" class="btn btn-primary btn-xs " href="{% url 'informationweekendsholidays'%}">Информация
+                        о выходных днях и праздниках</a>
+                    {%endif%}
+                    {% if perms.workers.UserWorker_add %}
+                    <a type="submit" class="btn btn-success btn-xs " href="{% url 'workers_missing' %}">Добавить
+                        отсутствие сотрудника</a>
+                    {%endif%}
+                    {% if perms.workers.UserWorker_add %}
+                    <a type="submit" class="btn btn-success btn-xs " href="{% url 'workersMission' %}">Добавить
+                        командировку</a>
+                    {%endif%}
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="timeline-footer">
+                    <a class="btn btn-secondary btn-sm float-right" href="{{up_month}}"> > </a>
+                    <a class="btn btn-secondary btn-sm float-left" href="{{down_month}}"> < </a>
+                </div>
+            </div>
+            <div class="list-group list-group-horizontal text-nowrap overflow-auto p-1">
+                <table class="mission">
+                    <thead>
+                    <tr>
+                        <!-- Шапка месяца и пользователи//-->
+                        <td rowspan="2" width="150">Сотрудиник</td>
+                        {% for mon,days in calendar.items%}
+                        <th colspan="{{days|length}}" width="150">{{mon}}</th>
+                        {%endfor%}
+                    </tr>
+                    <tr>
+                        <!--  Заполняем шапка даты//-->
+                        {% for mon,days in calendar.items%}
+                        {% for day in days%}
+                        {% if day.1%}
+                        <th class='mission-tr' style="background:{{day.3}}; ng-hide=true; ">{{day.0.day}}</th>
+                        {% endif%}
+                        {%endfor%}
+                        {%endfor%}
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for worker,graphs in calendar_workers.items%}
+                    <tr align="center">
+                        <td>{{worker.user.surname}} {{worker.user.name.0}}. {{worker.user.patronymic.0}}.</td>
+                        {% for graph in graphs%}
+                        <td style="background:{{graph.3}}; ng-hide=true" colspan="{{graph.1}}">{{graph.2}}
+                        </td>
+                        {% endfor%}
+                    </tr>
+                    {% endfor%}
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- /.card-body-->
+        </div>
+        <!-- /.card -->
+        <!-- /.таблица -->
+        <div class="card">
+            <section class="content-header">
+                <div class="container-fluid">
+                    <div class="row mb-2">
+                        <div class="col-sm-6">
+                            <h5>Описание цвета</h5>
+                        </div>
+                    </div>
+                </div><!-- /.container-fluid -->
+            </section>
+            <section class="content">
+                <div class="container-fluid">
+                    {%for information_missing in information_missings%}
+                    <div class="row">
+                        <div class="col-1" style="max-width: 30px;">
+                        </div>
+                        <div class="col-1" style="max-width: 30px;">
+                            <div style="width: 20px;height: 20px; background: {{information_missing.1}};border: 1px solid black;"></div>
+                        </div>
+                        <div class="col-3">{{information_missing.0}}</div>
+                    </div>
+                    {%endfor%}
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+<!-- Select2 -->
+<script src="{% static 'plugins/select2/js/select2.full.min.js'%}"></script>
+<script>
+  $(function () {
+    //Initialize Select2 Elements
+    $('.select2').select2();
+  })
+
+
+
+</script>
+{% endblock %}

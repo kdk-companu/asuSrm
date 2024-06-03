@@ -3,16 +3,16 @@ from django.urls import path, include
 from django.conf.urls.static import static
 
 # from apps.workers.views import Workers_Login, Workers_Logout
-from apps.workers.views import UserLogout, UserLogin
+from apps.workers.views import UserLogout, UserLogin, Workers
 from settings import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('apps.workers.urls')),
+    path('', include('apps.workobjects.urls')),
     path('login/', UserLogin.as_view(), name='login'),
     path('logout/', UserLogout.as_view(), name='logout'),
-
-
+    path('', Workers.as_view(), name='index'),
 
     path("__debug__/", include("debug_toolbar.urls")),
 
