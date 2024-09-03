@@ -6,13 +6,10 @@
 <link rel="stylesheet" href="{% static 'plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css'%}">
 <link rel="stylesheet" href="{% static 'plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css'%}">
 <!-- Theme style -->
+<link rel="stylesheet" href="{% static 'css/adminlte.css'%}">
 {% endblock %}
 {% block content_header %}
 <li class="breadcrumb-item"><a href="{% url 'workers_planning'%}">Планирование работ</a></li>
-{% if perms.workers.WorkersMissing_view_all %}
-<li class="breadcrumb-item"><a href="{% url 'workers_missing'%}">Отсутствие
-    сотрудников руководства</a></li>
-{% endif%}
 <li class="breadcrumb-item active">{{title}}</li>
 {% endblock %}
 {% block content %}
@@ -23,15 +20,14 @@
         <div class="card card-primary card-outline">
             <!-- Заголовок -->
             <div class="card-body">
-                {% if form_filter.errors%}
+                 {% if form_filter.errors%}
                 <div class="alert alert-danger alert-dismissible">
                     <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
-                    {{form_filter.errors }}
+                    {%form_filter.errors }}
                 </div>
                 {% endif %}
                 <form action="" method="get">
                     <div class="row">
-                        <div class="col form-group">{{form_filter.department}}</div>
                         <div class="col form-group">{{form_filter.workers}}</div>
                         <div class="form-group">
                             <div class="input-group date" id="date_in" data-target-input="nearest">
@@ -53,8 +49,7 @@
                             <button type="submit" class="btn btn-md btn-default"><i class="fa fa-search"></i></button>
                         </div>
                         <div class="col-xs form-group ">
-                            <a href="{% url 'workers_missing_subdivision' workerBasic.actual_subdivision.slug %}"
-                               type="submit" class="btn btn-md btn-default">
+                            <a href="{% url 'workers_missing'%}" type="submit" class="btn btn-md btn-default">
                                 <i class="fa fa-eraser"></i>
                             </a>
                         </div>
@@ -79,9 +74,8 @@
                     {{title}}
                 </h3>
                 <div class="bd-example m-0 float-right">
-                    {% if perms.workers.WorkersMissing_view_subdivision%}
-                    <a type="submit" class="btn btn-success btn-xs "
-                       href="{% url 'workers_missing_subdivision_add' workerBasic.actual_subdivision.slug%}">Добавить
+                    {% if perms.workers.WorkersMissing_management_add%}
+                    <a type="submit" class="btn btn-success btn-xs " href="{% url 'workers_missing_add' %}">Добавить
                         отсутствие</a>
                     {%endif%}
                 </div>
@@ -120,12 +114,14 @@
                         <td>{{workers_missing.date_end}}</td>
                         <td>{{workers_missing.comments}}</td>
                         <td width="100px">
-                            {% if perms.workers.WorkersMissing_change_subdivision %}
+                        {{ workers_missing.user.user.slug}}= {{workerBasic.user.slug}}
+
+                            {% if perms.workers.WorkersMissing_management_change  %}
                             <a class="btn btn-info btn-sm"
-                               href=" {% url 'workers_missing_subdivision_update' workerBasic.actual_subdivision.slug workers_missing.pk %}"><i
+                               href=" {% url 'workers_missing_update' workers_missing.pk %}"><i
                                     class="fas fa-pencil-alt"></i></a>
                             {%endif%}
-                            {% if perms.workers.WorkersMissing_delete_subdivision%}
+                        {% if perms.workers.WorkersMissing_management_delete%}
                             <a class="remove-missing btn btn-danger btn-sm" data-toggle="modal"
                                data-target="#modal-default" data-slug="{{workers_missing.pk}}"
                                data-text="{{workers_missing.user}}:{{workers_missing.date_start}}-{{workers_missing.date_end}}"><i
@@ -167,6 +163,8 @@
 </div>
 {% endblock %}
 {% block script %}
+<!-- jQuery -->
+<script src="{% static 'plugins/jquery/jquery.min.js'%}"></script>
 <!-- Select2 -->
 <script src="{% static 'plugins/select2/js/select2.full.min.js'%}"></script>
 <!-- InputMask -->

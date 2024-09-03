@@ -48,7 +48,7 @@ class InformationWeekendsHolidays_Form(forms.ModelForm):
     )
 
 
-class WorkersMissing_Filter(forms.Form):
+class WorkersMissingManagement_Filter(forms.Form):
     date_in = forms.DateField(required=False,
                               widget=forms.DateInput(
                                   attrs={'class': 'form-control datepicker-input',
@@ -73,24 +73,10 @@ class WorkersMissing_Filter(forms.Form):
                                input_formats=('%d.%m.%Y',))
 
     def __init__(self, *args, **kwargs):
-
-        workerBasic = kwargs.get('initial')['workerBasic']  # Текущий пользователь
-        user = kwargs.pop('initial')['user']  # Текущий пользователь
+        user = kwargs.get('initial')['user']  # Текущий пользователь
         super().__init__(*args, **kwargs)
-
-        # Сортировка по управлению
+        # # Сортировка по управлению
         filters = Q()  # создаем первый объект Q, что бы складывать с ним другие
-
-        if not user.has_perm('workers.WorkersMissing_view_all'):
-            if user.has_perm('workers.WorkersMissing_view_subdivision'):
-                filters &= Q(**{f'{"actual_subdivision"}': workerBasic.actual_subdivision})
-            else:
-                if user.has_perm('workers.WorkersMissing_view'):
-                    filters &= Q(**{f'{"actual_subdivision"}': workerBasic.actual_subdivision})
-                    filters &= Q(**{f'{"actual_department"}': workerBasic.actual_department})
-                else:
-                    if user.has_perm('workers.WorkersMissing_his_view'):
-                        filters &= Q(**{f'{"user__slug"}': workerBasic.user.slug})
 
         filters &= Q(**{f'{"employee"}': 'employee_current'})
         QUERY_WORKERS = [(i.user.slug, i.user) for i in
@@ -120,7 +106,6 @@ class WorkersMissing_Filter(forms.Form):
             if self.cleaned_data['date_in'] > self.cleaned_data['date_out']:
                 raise ValidationError('Неправильно задан диапазон дат.')
         return self.cleaned_data['date_in']
-
 
 
 class WorkersMissing_Subdivision_Filter(forms.Form):
@@ -196,7 +181,6 @@ class WorkersMissing_Subdivision_Filter(forms.Form):
             if self.cleaned_data['date_in'] > self.cleaned_data['date_out']:
                 raise ValidationError('Неправильно задан диапазон дат.')
         return self.cleaned_data['date_in']
-
 
 
 class WorkersMissing_Department_Filter(forms.Form):
@@ -408,9 +392,120 @@ class WorkersMissing_Control(forms.ModelForm):
     #
 
 
+class WorkersMissing_Subdivision_Control(forms.ModelForm):
+    workerBasic = None
+    pk = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['user'].empty_label = "Сотрудник"
+        self.fields['information_missing'].empty_label = "Причина отсутствия"
+        self.workerBasic = kwargs['initial']['workerBasic']
+        try:
+            self.pk = kwargs['initial']['pk']
+        except:
+            pass
+        self.fields['user'].queryset = WorkerBasic.objects.filter(
+            actual_subdivision=self.workerBasic.actual_subdivision, employee='employee_current').order_by('user')
+
+    class Meta:
+        model = WorkersMissing
+        fields = ['user', 'information_missing', 'date_start', 'date_end', 'comments']
+        widgets = {
+            'user': forms.Select(
+                attrs={'class': 'select2', 'style': 'width: 100%'}),
+            'information_missing': forms.Select(
+                attrs={'class': 'select2', 'style': 'width: 100%'}),
+            'comments': forms.TextInput(
+                attrs={'class': 'form-control', 'placeholder': 'Коментарии', 'id': 'comments'}),
+        }
+
+    date_start = forms.DateField(
+        widget=forms.DateInput(
+            attrs={'class': 'form-control datepicker-input',
+                   'data-target': '#date_form',
+                   'data-inputmask-alias': 'datetime',
+                   'data-inputmask-inputformat': 'dd.mm.yyyy',
+                   'data-mask': "00.00.0000",
+                   'inputmode': "numeric"
+                   }, format='%d.%m.%Y'
+        ), label="Дата от",
+        input_formats=('%d.%m.%Y',),
+        required=False
+    )
+    date_end = forms.DateField(
+        widget=forms.DateInput(
+            attrs={'class': 'form-control datepicker-input',
+                   'data-target': '#date_form',
+                   'data-inputmask-alias': 'datetime',
+                   'data-inputmask-inputformat': 'dd.mm.yyyy',
+                   'data-mask': "00.00.0000",
+                   'inputmode': "numeric"
+                   }, format='%d.%m.%Y'
+        ), label="Дата до",
+        input_formats=('%d.%m.%Y',),
+        required=False
+    )
+    date_end_save = None
+
+    def clean_date_end(self):
+        date_start = self.cleaned_data['date_start']
+        date_end = self.cleaned_data['date_end']
+        self.date_end_save = date_end  # Ошибка передачи поля в clean
+        if date_start > date_end:
+            raise ValidationError('Дата начала отсутствия не может быть больше даты окончания отсутствия.')
+        """Максимальный срок отсутствия"""
+        if (date_end - date_start).days > 90:
+            raise ValidationError('Максимальный срок отсутствия 90 дней.')
+        return date_end
+
+    def clean(self):
+        date_start = self.cleaned_data['date_start']
+        date_end = self.date_end_save
+        workers = self.cleaned_data['user']
+        """ Проверка на Отсутствие"""
+        if self.pk:
+            queriesMissings = Q(date_start__gte=date_start - relativedelta(months=6)) & \
+                              Q(date_end__lte=date_end + relativedelta(months=6)) & Q(user=workers) & ~Q(pk=self.pk)
+        else:
+            queriesMissings = Q(date_start__gte=date_start - relativedelta(months=6)) & \
+                              Q(date_end__lte=date_end + relativedelta(months=6)) & Q(user=workers)
+        missings = WorkersMissing.objects.filter(queriesMissings)
+
+        for missing in missings:
+            """Если даты попадают в диапазон"""
+            if date_start >= missing.date_start and date_start <= missing.date_end or date_end >= missing.date_start and date_end <= missing.date_end:
+                raise ValidationError(
+                    '{0} уже отсутсвует с {1} по {2} по причине {3}'.format(workers, missing.date_start,
+                                                                            missing.date_end,
+                                                                            missing.information_missing))
+            if date_start < missing.date_start and date_end > missing.date_end:
+                raise ValidationError(
+                    '{0} уже отсутсвует с {1} по {2} по причине {3}'.format(workers, missing.date_start,
+                                                                            missing.date_end,
+                                                                            missing.information_missing))
+        """ Проверка на командировки"""
+        missions = WorkersMission.objects.filter(date_start__gte=date_start - relativedelta(months=6),
+                                                 date_end__lte=date_end + relativedelta(months=6), user=workers)
+        for mission in missions:
+            """Если даты попадают в диапазон"""
+            if date_start >= mission.date_departure and date_start <= mission.date_arrival or date_end >= mission.date_departure and date_start <= mission.date_arrival:
+                raise ValidationError(
+                    '{0} уже в командировке с {1} по {2} на объекте {3}'.format(workers, mission.date_departure,
+                                                                                mission.date_arrival,
+                                                                                mission.organizations_objects))
+            if date_start < mission.date_departure and date_end > mission.date_arrival:
+                raise ValidationError(
+                    '{0} уже в командировке с {1} по {2} на объекте {3}'.format(workers, mission.date_departure,
+                                                                                mission.date_arrival,
+                                                                                mission.organizations_objects))
+
+
 class WorkersMissing_Department_Control(forms.ModelForm):
     workerBasic = None
     pk = None
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -598,7 +693,8 @@ class WorkersMissing_UserHis_Control(forms.ModelForm):
             """ Проверка на Отсутствие"""
             if self.pk:
                 queriesMissings = Q(date_start__gte=date_start - relativedelta(months=6)) & \
-                                  Q(date_end__lte=date_end + relativedelta(months=6)) & Q(user=self.workerBasic) & ~Q(pk=self.pk)
+                                  Q(date_end__lte=date_end + relativedelta(months=6)) & Q(user=self.workerBasic) & ~Q(
+                    pk=self.pk)
             else:
                 queriesMissings = Q(date_start__gte=date_start - relativedelta(months=6)) & \
                                   Q(date_end__lte=date_end + relativedelta(months=6)) & Q(user=self.workerBasic)
@@ -1165,6 +1261,47 @@ class WorkersMission_Form_Change(forms.ModelForm):
 
 
 class Planning_Filter(forms.Form):
+    def clean_month(self):
+        month = self.cleaned_data['month']
+        try:
+            if self.cleaned_data['month']:
+                month = int(month)
+                if month > 12:
+                    raise ValidationError('Уменьшите месяц.')
+                if month < 1:
+                    raise ValidationError('Увеличьте месяц.')
+        except Exception as e:
+            raise ValidationError('Неправильный формат месяца.')
+        return month
+
+    def clean_length(self):
+        length = self.cleaned_data['length']
+        try:
+            if length != None:
+                length = int(length)
+                if length > 12:
+                    raise ValidationError('Очень большая протяженность месяцев. Максимум 12 месяцев.')
+                if length < 1:
+                    raise ValidationError('Очень маленькая протяженность месяцев. Минимум 1 месяц.')
+        except Exception as e:
+            raise ValidationError('Неправильный формат месяца. Доступный диапазон 1 - 12 месяцев.')
+        return length
+
+    def clean_year(self):
+        year = self.cleaned_data['year']
+        try:
+            if self.cleaned_data['year']:
+                year = int(year)
+                if year > 2100:
+                    raise ValidationError('Уменьшите год.')
+                if year < 1980:
+                    raise ValidationError('Увеличьте год.')
+        except Exception as e:
+            raise ValidationError('Неправильный формат года.')
+        return year
+
+
+class Planning_Managment_Filter(Planning_Filter):
     """Форма для поиска."""
 
     def __init__(self, *args, **kwargs):
@@ -1200,47 +1337,10 @@ class Planning_Filter(forms.Form):
                                                       widget=forms.Select(
                                                           attrs={'class': 'select2', 'style': 'width: 100%'}))
 
-    def clean_month(self):
-        month = self.cleaned_data['month']
-        try:
-            if self.cleaned_data['month']:
-                month = int(month)
-                if month > 12:
-                    raise ValidationError('Уменьшите месяц.')
-                if month < 1:
-                    raise ValidationError('Увеличьте месяц.')
-        except Exception as e:
-            raise ValidationError('Неправильный формат месяца.')
-        return month
-
-    def clean_length(self):
-        length = self.cleaned_data['length']
-        try:
-            if length != None:
-                length = int(length)
-                if length > 12:
-                    raise ValidationError('Очень большая протяженность месяцев. Максимум 12 месяцев.')
-                if length < 1:
-                    raise ValidationError('Очень маленькая протяженность месяцев. Минимум 1 месяц.')
-        except Exception as e:
-            raise ValidationError('Неправильный формат месяца. Доступный диапазон 1 - 12 месяцев.')
-        return length
-
-    def clean_year(self):
-        year = self.cleaned_data['year']
-        try:
-            if self.cleaned_data['year']:
-                year = int(year)
-                if year > 2100:
-                    raise ValidationError('Уменьшите год.')
-                if year < 1980:
-                    raise ValidationError('Увеличьте год.')
-        except Exception as e:
-            raise ValidationError('Неправильный формат года.')
-        return year
 
 
-class Planning_Subdivision_Filter(forms.Form):
+
+class Planning_Subdivision_Filter(Planning_Filter):
     """Форма для поиска."""
 
     def __init__(self, *args, **kwargs):
@@ -1266,47 +1366,9 @@ class Planning_Subdivision_Filter(forms.Form):
                                                       widget=forms.Select(
                                                           attrs={'class': 'select2', 'style': 'width: 100%'}))
 
-    def clean_month(self):
-        month = self.cleaned_data['month']
-        try:
-            if self.cleaned_data['month']:
-                month = int(month)
-                if month > 12:
-                    raise ValidationError('Уменьшите месяц.')
-                if month < 1:
-                    raise ValidationError('Увеличьте месяц.')
-        except Exception as e:
-            raise ValidationError('Неправильный формат месяца.')
-        return month
-
-    def clean_length(self):
-        length = self.cleaned_data['length']
-        try:
-            if length != None:
-                length = int(length)
-                if length > 12:
-                    raise ValidationError('Очень большая протяженность месяцев. Максимум 12 месяцев.')
-                if length < 1:
-                    raise ValidationError('Очень маленькая протяженность месяцев. Минимум 1 месяц.')
-        except Exception as e:
-            raise ValidationError('Неправильный формат месяца. Доступный диапазон 1 - 12 месяцев.')
-        return length
-
-    def clean_year(self):
-        year = self.cleaned_data['year']
-        try:
-            if self.cleaned_data['year']:
-                year = int(year)
-                if year > 2100:
-                    raise ValidationError('Уменьшите год.')
-                if year < 1980:
-                    raise ValidationError('Увеличьте год.')
-        except Exception as e:
-            raise ValidationError('Неправильный формат года.')
-        return year
 
 
-class Planning_Department_Filter(forms.Form):
+class Planning_Department_Filter(Planning_Filter):
     """Форма для поиска."""
 
     def __init__(self, *args, **kwargs):
@@ -1346,41 +1408,17 @@ class Planning_Department_Filter(forms.Form):
                                                    widget=forms.Select(
                                                        attrs={'class': 'select2', 'style': 'width: 100%'}))
 
-    def clean_month(self):
-        month = self.cleaned_data['month']
-        try:
-            if self.cleaned_data['month']:
-                month = int(month)
-                if month > 12:
-                    raise ValidationError('Уменьшите месяц.')
-                if month < 1:
-                    raise ValidationError('Увеличьте месяц.')
-        except Exception as e:
-            raise ValidationError('Неправильный формат месяца.')
-        return month
 
-    def clean_length(self):
-        length = self.cleaned_data['length']
-        try:
-            if length != None:
-                length = int(length)
-                if length > 12:
-                    raise ValidationError('Очень большая протяженность месяцев. Максимум 12 месяцев.')
-                if length < 1:
-                    raise ValidationError('Очень маленькая протяженность месяцев. Минимум 1 месяц.')
-        except Exception as e:
-            raise ValidationError('Неправильный формат месяца. Доступный диапазон 1 - 12 месяцев.')
-        return length
+class Planning_His_Filter(Planning_Filter):
+    """Форма для поиска."""
 
-    def clean_year(self):
-        year = self.cleaned_data['year']
-        try:
-            if self.cleaned_data['year']:
-                year = int(year)
-                if year > 2100:
-                    raise ValidationError('Уменьшите год.')
-                if year < 1980:
-                    raise ValidationError('Увеличьте год.')
-        except Exception as e:
-            raise ValidationError('Неправильный формат года.')
-        return year
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['length'] = forms.IntegerField(label='Протяженность месяцев', required=False,
+                                                   widget=forms.NumberInput(
+                                                       attrs={'class': 'form-control',
+                                                              'placeholder': 'Протяженность месяцев', 'id': 'length'}))
+        self.fields['year'] = forms.IntegerField(label='Год', required=False, widget=forms.NumberInput(
+            attrs={'class': 'form-control', 'placeholder': 'Год', 'id': 'year'}))
+        self.fields['month'] = forms.IntegerField(label='Месяц', required=False, widget=forms.NumberInput(
+            attrs={'class': 'form-control', 'placeholder': 'Месяц', 'id': 'month'}))

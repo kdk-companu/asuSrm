@@ -3,10 +3,6 @@
 {% block style %}
 <!-- Select2 -->
 <link rel="stylesheet" href="{% static 'plugins/select2/css/select2.min.css'%}">
-<link rel="stylesheet" href="{% static 'plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css'%}">
-<link rel="stylesheet" href="{% static 'plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css'%}">
-<!-- Theme style -->
-<link rel="stylesheet" href="{% static 'css/adminlte.css'%}">
 {% endblock %}
 {% block content_header %}
 <li class="breadcrumb-item"><a href="{% url 'workers_planning'%}">Планирование работ</a></li>
@@ -20,14 +16,15 @@
         <div class="card card-primary card-outline">
             <!-- Заголовок -->
             <div class="card-body">
-                 {% if form_filter.errors%}
+                {% if form_filter.errors%}
                 <div class="alert alert-danger alert-dismissible">
                     <h5><i class="icon fas fa-ban"></i> Ошибка.</h5>
-                    {%form_filter.errors }}
+                    {{ form_filter.errors }}
                 </div>
                 {% endif %}
                 <form action="" method="get">
                     <div class="row">
+                        <div class="col form-group">{{form_filter.objects}}</div>
                         <div class="col form-group">{{form_filter.workers}}</div>
                         <div class="form-group">
                             <div class="input-group date" id="date_in" data-target-input="nearest">
@@ -49,7 +46,7 @@
                             <button type="submit" class="btn btn-md btn-default"><i class="fa fa-search"></i></button>
                         </div>
                         <div class="col-xs form-group ">
-                            <a href="{% url 'workers_missing'%}" type="submit" class="btn btn-md btn-default">
+                            <a href="{% url 'workersMission'%}" type="submit" class="btn btn-md btn-default">
                                 <i class="fa fa-eraser"></i>
                             </a>
                         </div>
@@ -71,12 +68,13 @@
             <!-- Заголовок -->
             <div class="card-header">
                 <h3 class="card-title">
+                    <i class="fa fa-car"></i>
                     {{title}}
                 </h3>
                 <div class="bd-example m-0 float-right">
-                    {% if perms.workers.WorkersMissing_his_add or perms.workers.WorkersMissing_add or perms.workers.WorkersMissing_add_subdivision or perms.workers.WorkersMissing_add_all%}
-                    <a type="submit" class="btn btn-success btn-xs " href="{% url 'workers_missing_add' %}">Добавить
-                        отсутствие</a>
+                    {% if perms.workers.UserWorker_add %}
+                    <a type="submit" class="btn btn-success btn-xs " href="{% url 'workersMission_add' %}">Добавить
+                        командировку</a>
                     {%endif%}
                 </div>
             </div>
@@ -86,19 +84,21 @@
                     <tr>
                         <th width="50"></th>
                         <th>ФИО</th>
-                        <th>Причина отсутствия</th>
-                        <th>Начало отсутствия</th>
-                        <th>Окончание отсутствия</th>
-                        <th>Коментарии</th>
+                        <th>Объект командировки</th>
+                        <th>Дата выезда</th>
+                        <th>Дата начала работы</th>
+                        <th>Дата окончание работы</th>
+                        <th>Дата прибытия</th>
+                        <th>Статус</th>
                         <th style="width: 40px"></th>
                     </tr>
                     </thead>
                     <tbody>
-                    {% for workers_missing in workers_missings%}
+                    {% for workersmission in workersmissions%}
                     <tr>
                         <td>
-                            {%if workers_missing.user.user.image_smol %}
-                            <img src="{{workers_missing.user.user.image_smol.url}}" alt="user-avatar"
+                            {%if workersmission.user.user.image_smol %}
+                            <img src="{{workersmission.user.user.image_smol.url}}" alt="user-avatar"
                                  class="img-circle img-bordered-sm" width="30" height="30">
                             {%else%}
                             <img src="{% static 'img/avatar_smol.jpg'%}" alt="user-avatar"
@@ -106,25 +106,36 @@
                             {%endif%}
                             </a>
                         </td>
-                        <td>{{workers_missing.user.user.surname}}
-                            {{workers_missing.user.user.name.0}}.{{workers_missing.user.user.patronymic.0}}.
+                        <td>{{workersmission.user.user.surname}}
+                            {{workersmission.user.user.name.0}}.{{workersmission.user.user.patronymic.0}}.
                         </td>
-                        <td>{{workers_missing.information_missing}}</td>
-                        <td>{{workers_missing.date_start}}</td>
-                        <td>{{workers_missing.date_end}}</td>
-                        <td>{{workers_missing.comments}}</td>
+                        <td>{{workersmission.organizations_objects}}</td>
+                        <td>{{workersmission.date_departure}}</td>
+                        <td>{%if workersmission.date_start%}
+                            {{workersmission.date_start}}
+                            {%else%}
+                            Дата не указана
+                            {%endif%}
+                        </td>
+                        <td>
+                            {%if workersmission.date_end%}
+                            {{workersmission.date_end}}
+                            {%else%}
+                            Дата не указана
+                            {%endif%}
+                        </td>
+                        <td>{{workersmission.date_arrival}}</td>
+                        <td>{{workersmission.get_status_display}}</td>
                         <td width="100px">
-{{ workers_missing.user.user.slug}}= {{workerBasic.user.slug}}
-
-                            {% if perms.workers.WorkersMissing_his_change  %}
+                            {% if perms.workers.InformationMissing_change %}
                             <a class="btn btn-info btn-sm"
-                               href=" {% url 'workers_missing_update' workers_missing.pk %}"><i
+                               href="{% url 'workersMission_update' workersmission.pk %}"><i
                                     class="fas fa-pencil-alt"></i></a>
                             {%endif%}
-                        {% if perms.workers.WorkersMissing_his_delete or perms.workers.WorkersMissing_delete or perms.workers.WorkersMissing_delete_subdivision or perms.workers.WorkersMissing_delete_all%}
+                            {% if perms.workers.InformationMissing_delete %}
                             <a class="remove-missing btn btn-danger btn-sm" data-toggle="modal"
-                               data-target="#modal-default" data-slug="{{workers_missing.pk}}"
-                               data-text="{{workers_missing.user}}:{{workers_missing.date_start}}-{{workers_missing.date_end}}"><i
+                               data-target="#modal-default" data-slug="{{workersmission.pk}}"
+                               data-text="{{workersmission.user}}:{{workersmission.date_departure}}-{{workersmission.date_arrival}}"><i
                                     class="fas fa-trash"></i></a>
                             {%endif%}
                         </td>
@@ -201,7 +212,10 @@ $(document).on("click", ".remove-missing", function () {
     var slug = $(this).data('slug');
     var text = $(this).data('text');
     document.getElementById("button-remove").href="?remove="+slug;
-    document.getElementById("remove-text").innerText = "Вы пытаетесь удалить причину отсутствия: '"+text+"'?";
+    document.getElementById("remove-text").innerText = "Вы пытаетесь удалить командировку: '"+text+"'?";
 });
+
+
+
 </script>
 {% endblock %}

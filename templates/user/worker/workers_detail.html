@@ -24,11 +24,11 @@
                         </div>
                         <h4 class="profile-username text-center">{{worker}}</h4>
                         <p class="text-muted text-center">{{basic.chief.name}}</p>
-                        {%if permission_worker_change%}
+                        {%if permission_change%}
                         <a href="{% url 'workers_image' worker.slug %}" class="btn btn-primary btn-block"><b>Изменить
                             иконку</b></a>
                         {%endif%}
-                        {%if permission_worker_change_permission%}
+                        {%if permission_change_permission%}
                         <a href="{% url 'workers_permissions' worker.slug %}" class="btn btn-primary btn-block"><b>Изменить
                             права доступа</b></a>
                         {%endif%}
@@ -36,7 +36,7 @@
                         <a href="{% url 'workers_change_password'%}" class="btn btn-primary btn-block"><b>Изменить
                             пароль</b></a>
                         {% endif %}
-                        {% if permission_worker_change_password %}
+                        {% if permission_change_password %}
                         <a href="{% url 'workers_update_password' worker.slug %}" class="btn btn-primary btn-block"><b>Восстановить
                             пароль</b></a>
                         {% endif %}

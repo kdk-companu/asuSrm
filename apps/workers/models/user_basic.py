@@ -93,6 +93,7 @@ class UserBasic(AbstractBaseUser, PermissionsMixin):
 
         return super().save(*args, **kwargs)
 
+
     class Meta:
         verbose_name = 'Пользователь. Базовая.'
         verbose_name_plural = 'Пользователи. Базовая.'

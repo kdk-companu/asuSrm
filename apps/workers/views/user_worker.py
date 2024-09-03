@@ -10,16 +10,19 @@ from django.urls import reverse
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from django.contrib import messages
 
-from apps.workers.forms import Search_Filter,  Search_User_Filter, Workers_Add_Form, \
+from apps.workers.forms import Search_Filter, Search_User_Filter, Workers_Add_Form, \
     Workers_Form_Upload_Images, Workers_Form_UpdatePassword, Workers_Form_PasswordChange, WorkerBasic_Form_Change, \
     WorkerClosed_Form_Change, WorkerClosed_Form_Upload_Passport, WorkerClosed_Form_Upload_Snils, \
     WorkerClosed_Form_Upload_Inn, WorkerClosed_Form_Upload_Archive, WorkerClosed_Form_Upload_Signature, \
     Workers_Form_Change
 from apps.workers.models import Worker, WorkerBasic, WorkerClosed
-from mixin.workers_right import WorkerPermissionsBased,WorkerPermissionsUpdateMixin, WorkerBasicPermissionsUpdateMixin, WorkerClosedPermissionsUpdateMixin
+from mixin.access.access import AccessProjectMixin
+from mixin.access.workers.workers_access import WorkersAccessMixin_Worker, \
+    WorkersAccessMixin_WorkerBasic, WorkersAccessMixin_WorkerClosed
+from mixin.workers_right import WorkerPermissionsUpdateMixin
 
 
-class Workers(LoginRequiredMixin, WorkerPermissionsBased, ListView):
+class Workers(LoginRequiredMixin, AccessProjectMixin, ListView):
     """Вывод всех пользователей"""
     model = WorkerBasic
     template_name = 'user/worker/workers.html'
@@ -47,11 +50,12 @@ class Workers(LoginRequiredMixin, WorkerPermissionsBased, ListView):
                                                                      'actual_department', 'chief', 'user').only(
             'actual_subdivision__name',
             'actual_department__name', 'chief__name', 'user__surname', 'user__name', 'user__patronymic', 'user__slug',
-            'user__phone', 'user__email', 'user__image_smol',).order_by('user__surname')
+            'user__phone', 'user__email', 'user__image_smol', ).order_by('user__surname')
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Сотрудники'
+
         context['search_filter'] = Search_Filter(self.request.GET)
         # Сохранение ссылки в pagination
         if 'search' in self.request.GET:
@@ -60,7 +64,7 @@ class Workers(LoginRequiredMixin, WorkerPermissionsBased, ListView):
         return context
 
 
-class Workers_Filter(LoginRequiredMixin, WorkerPermissionsBased, ListView):
+class Workers_Filter(LoginRequiredMixin, AccessProjectMixin, ListView):
     """Вывод всех пользователей"""
     model = WorkerBasic
     template_name = 'user/worker/workers_filter.html'
@@ -116,7 +120,7 @@ class Workers_Filter(LoginRequiredMixin, WorkerPermissionsBased, ListView):
         return context
 
 
-class Workers_Add(LoginRequiredMixin, WorkerPermissionsBased, CreateView):
+class Workers_Add(LoginRequiredMixin, AccessProjectMixin, CreateView):
     """Добавление нового сотрудника"""
     model = Worker
     template_name = 'user/worker/editing/workers_add.html'
@@ -162,7 +166,7 @@ class Workers_Add(LoginRequiredMixin, WorkerPermissionsBased, CreateView):
         return reverse('workers_basic_change', kwargs={'workers_slug': upadate_user.slug})
 
 
-class Workers_DetailView(LoginRequiredMixin, WorkerPermissionsBased, DetailView):
+class Workers_DetailView(LoginRequiredMixin, AccessProjectMixin, DetailView):
     """Подробная информация о сотруднике"""
     model = Worker
     template_name = 'user/worker/workers_detail.html'
@@ -198,63 +202,63 @@ class Workers_DetailView(LoginRequiredMixin, WorkerPermissionsBased, DetailView)
             user_subdivision_department = user_subdivision and user.actual_department == workerBasic.actual_department
             user_сurrent = user == workerBasic
         context['permission_user_сurrent'] = user_сurrent
-        context['permission_missing'] = user_сurrent and self.request.user.has_perm('workers.WorkersMissing_his_view')
+        context['permission_missing'] = user_сurrent and self.request.user.has_perm('workers.WorkersMission_his_view')
 
         #########
         ## Пользователь. Сотрудник.
         #########
-        context['permission_worker_change'] = False  # Изменять всю информацию
-        context['permission_worker_change_password'] = False  # Обновлять пароль. Не для себя.
-        context['permission_worker_change_permission'] = False  # Обновлять права доступа. Не для себя.
+        context['permission_change'] = False  # Изменять всю информацию
+        context['permission_change_password'] = False  # Обновлять пароль. Не для себя.
+        context['permission_change_permission'] = False  # Обновлять права доступа. Не для себя.
         # Вся информация
         if user_сurrent:
             if self.request.user.has_perm('workers.Worker_his_change'):
+                context['permission_change'] = True
                 context['permission_worker_change'] = True
         else:
-            if self.request.user.has_perm('workers.Worker_change') and user_subdivision_department:
+            # Редактирование
+            if self.request.user.has_perm('workers.Worker_department_change') and user_subdivision_department:
                 context['permission_worker_change'] = True
-            elif self.request.user.has_perm('workers.Worker_change_subdivision') and user_subdivision:
+            elif self.request.user.has_perm('workers.Worker_subdivision_change') and user_subdivision:
                 context['permission_worker_change'] = True
-            elif self.request.user.has_perm('workers.Worker_change_all'):
+            elif self.request.user.has_perm('workers.Worker_management_change'):
                 context['permission_worker_change'] = True
-        if not user_сurrent:
             # Пароль
-            if self.request.user.has_perm('workers.Worker_change_password') and user_subdivision_department:
-                context['permission_worker_change_password'] = True
-            elif self.request.user.has_perm('workers.Worker_change_password_subdivision') and user_subdivision:
-                context['permission_worker_change_password'] = True
-            elif self.request.user.has_perm('workers.Worker_change_password_all'):
-                context['permission_worker_change_password'] = True
+            if self.request.user.has_perm('workers.Worker_department_change_password') and user_subdivision_department:
+                context['permission_change_password'] = True
+            elif self.request.user.has_perm('workers.Worker_subdivision_change_password') and user_subdivision:
+                context['permission_change_password'] = True
+            elif self.request.user.has_perm('workers.Worker_management_change_password'):
+                context['permission_change_password'] = True
             # Права доступа
-            if self.request.user.has_perm('workers.Worker_change_permission') and user_subdivision_department:
-                context['permission_worker_change_permission'] = True
-            elif self.request.user.has_perm('workers.Worker_change_permission_subdivision') and user_subdivision:
-                context['permission_worker_change_permission'] = True
-            elif self.request.user.has_perm('workers.Worker_change_permission_all'):
-                context['permission_worker_change_permission'] = True
-
+            if self.request.user.has_perm(
+                    'workers.Worker_department_change_permission') and user_subdivision_department:
+                context['permission_change_permission'] = True
+            elif self.request.user.has_perm('workers.Worker_subdivision_change_permission') and user_subdivision:
+                context['permission_change_permission'] = True
+            elif self.request.user.has_perm('workers.Worker_management_change_permission'):
+                context['permission_change_permission'] = True
         #########
         ## Базовая информация о сотрудниках
         #########
         context['permission_workerBasic_view'] = False  # Просматривать всю информацию
         context['permission_workerBasic_change'] = False  # Изменять всю информацию
         # Разрешение на просмотр
-        if self.request.user.has_perm('workers.WorkerBasic_view_all') or \
-                self.request.user.has_perm('workers.WorkerBasic_view_subdivision') and user_subdivision or \
-                self.request.user.has_perm('workers.WorkerBasic_view') and user_subdivision_department:
+        if self.request.user.has_perm('workers.WorkerBasic_management_view') or \
+                self.request.user.has_perm('workers.WorkerBasic_subdivision_view') and user_subdivision or \
+                self.request.user.has_perm('workers.WorkerBasic_department_view') and user_subdivision_department:
             context['basic'] = workerBasic
             context['permission_workerBasic_view'] = True
 
         # Разрешение на просмотр
+
         if user_сurrent:
             if self.request.user.has_perm('workers.WorkerBasic_his_change'):
                 context['permission_workerBasic_change'] = True
         else:
-            if self.request.user.has_perm('workers.WorkerBasic_change') and user_subdivision_department:
+            if self.request.user.has_perm('workers.WorkerBasic_department_change') and user_subdivision_department:
                 context['permission_workerBasic_change'] = True
-            elif self.request.user.has_perm('workers.WorkerBasic_change_subdivision') and user_subdivision:
-                context['permission_workerBasic_change'] = True
-            elif self.request.user.has_perm('workers.WorkerBasic_change_all'):
+            elif self.request.user.has_perm('workers.WorkerBasic_subdivision_change') and user_subdivision:
                 context['permission_workerBasic_change'] = True
         #########
         ## Закрытая информация о сотрудники
@@ -262,9 +266,9 @@ class Workers_DetailView(LoginRequiredMixin, WorkerPermissionsBased, DetailView)
         context['permission_workerClosed_view'] = False  # Просматривать всю информацию
         context['permission_workerClosed_change'] = False  # Изменять всю информацию
         # Разрешение на просмотр
-        if self.request.user.has_perm('workers.WorkerClosed_view_all') or \
-                self.request.user.has_perm('workers.WorkerClosed_view_subdivision') and user_subdivision or \
-                self.request.user.has_perm('workers.WorkerClosed_view') and user_subdivision_department:
+        if self.request.user.has_perm('workers.WorkerClosed_management_view') or \
+                self.request.user.has_perm('workers.WorkerClosed_subdivision_view') and user_subdivision or \
+                self.request.user.has_perm('workers.WorkerClosed_department_view') and user_subdivision_department:
             context['closed'] = WorkerClosed.objects.get(user__slug=self.kwargs.get(self.slug_url_kwarg))
             context['permission_workerClosed_view'] = True
         # Разрешение на редактирование
@@ -272,26 +276,26 @@ class Workers_DetailView(LoginRequiredMixin, WorkerPermissionsBased, DetailView)
             if self.request.user.has_perm('workers.WorkerClosed_his_change'):
                 context['permission_workerClosed_change'] = True
         else:
-            if self.request.user.has_perm('workers.WorkerClosed_change') and user_subdivision_department:
+            if self.request.user.has_perm('workers.WorkerClosed_department_change') and user_subdivision_department:
                 context['permission_workerClosed_change'] = True
-            elif self.request.user.has_perm('workers.WorkerClosed_change_subdivision') and user_subdivision:
+            elif self.request.user.has_perm('workers.WorkerClosed_subdivision_change') and user_subdivision:
                 context['permission_workerClosed_change'] = True
-            elif self.request.user.has_perm('workers.WorkerClosed_change_all'):
+            elif self.request.user.has_perm('workers.WorkerClosed_management_change'):
                 context['permission_workerClosed_change'] = True
         return context
 
 
-class Workers_Change(LoginRequiredMixin, WorkerPermissionsUpdateMixin, UpdateView):
+class Workers_Change(LoginRequiredMixin, WorkersAccessMixin_Worker, UpdateView):
     model = Worker
     template_name = 'user/worker/editing/workers_change.html'
 
     form_class = Workers_Form_Change
     login_url = 'login'
 
-    permission = 'workers.Worker_change_all'  # права высшее руководство
-    permission_his = 'workers.Worker_his_change'  # права редактирования самого себя
-    permission_subdivision = 'workers.Worker_change_subdivision'  # права Управление
-    permission_subdivision_department = 'workers.Worker_change'  # права Управление и отдел
+    permission_management = "workers.Worker_management_change"  # права высшее руководство
+    permission_subdivision = "workers.Worker_subdivision_change"  # права Управление
+    permission_department = "workers.Worker_department_change"  # права отдел
+    permission_his = "workers.Worker_his_change"  # права на самостоятельное редактирование
 
     # Управление по slug
     def get_object(self, queryset=None):
@@ -484,17 +488,17 @@ class User_Permissions(LoginRequiredMixin, WorkerPermissionsUpdateMixin, DetailV
         return context
 
 
-class WorkerBasic_Change(LoginRequiredMixin, WorkerBasicPermissionsUpdateMixin, UpdateView):
+class WorkerBasic_Change(LoginRequiredMixin, WorkersAccessMixin_WorkerBasic, UpdateView):
     model = WorkerBasic
     template_name = 'user/worker/editing/workerbasic_change.html'
 
     form_class = WorkerBasic_Form_Change
     login_url = 'login'
 
-    permission = 'workers.WorkerBasic_change_all'  # права высшее руководство
-    permission_his = 'workers.WorkerBasic_his_change'  # права редактирования самого себя
-    permission_subdivision = 'workers.WorkerBasic_change_subdivision'  # права Управление
-    permission_subdivision_department = 'workers.WorkerBasic_change'  # права Управление и отдел
+    permission_management = 'workers.WorkerBasic_management_change'  # права высшее руководство
+    permission_subdivision = 'workers.WorkerBasic_subdivision_change'  # права Управление
+    permission_department = 'workers.WorkerBasic_department_change'  # права отдел
+    permission_his = 'workers.WorkerBasic_his_change'  # права на самостоятельное редактирование
 
     # Управление по slug
     def get_object(self, queryset=None):
@@ -512,17 +516,17 @@ class WorkerBasic_Change(LoginRequiredMixin, WorkerBasicPermissionsUpdateMixin, 
         return reverse('workers_basic_change', kwargs={'workers_slug': self.kwargs['workers_slug']})
 
 
-class WorkerClosed_Change(LoginRequiredMixin, WorkerClosedPermissionsUpdateMixin, UpdateView):
+class WorkerClosed_Change(LoginRequiredMixin, WorkersAccessMixin_WorkerClosed, UpdateView):
     model = WorkerClosed
     template_name = 'user/worker/editing/workerclosed_change.html'
 
     form_class = WorkerClosed_Form_Change
     login_url = 'login'
 
-    permission = 'workers.WorkerClosed_change_all'  # права высшее руководство
-    permission_his = 'workers.WorkerClosed_his_change'  # права редактирования самого себя
-    permission_subdivision = 'workers.WorkerClosed_change_subdivision'  # права Управление
-    permission_subdivision_department = 'workers.WorkerClosed_change'  # права Управление и отдел
+    permission_management = 'workers.WorkerClosed_management_change'  # права высшее руководство
+    permission_subdivision = 'workers.WorkerClosed_subdivision_change'  # права Управление
+    permission_department = 'workers.WorkerClosed_department_change'  # права отдел
+    permission_his = 'workers.WorkerClosed_his_change'  # права на самостоятельное редактирование
 
     # Управление по slug
     def get_object(self, queryset=None):
@@ -540,17 +544,17 @@ class WorkerClosed_Change(LoginRequiredMixin, WorkerClosedPermissionsUpdateMixin
         return reverse('workers_closed_change', kwargs={'workers_slug': self.kwargs['workers_slug']})
 
 
-class WorkerClosed_Passport(LoginRequiredMixin, WorkerClosedPermissionsUpdateMixin, UpdateView):
+class WorkerClosed_Passport(LoginRequiredMixin, WorkersAccessMixin_WorkerClosed, UpdateView):
     """Добавление паспорта на сайт"""
     model = WorkerClosed
     template_name = 'user/worker/editing/workerclosed_passport.html'
     form_class = WorkerClosed_Form_Upload_Passport
 
     login_url = 'login'
-    permission = 'workers.WorkerClosed_change_all'  # права высшее руководство
-    permission_his = 'workers.WorkerClosed_his_change'  # права редактирования самого себя
-    permission_subdivision = 'workers.WorkerClosed_change_subdivision'  # права Управление
-    permission_subdivision_department = 'workers.WorkerClosed_change'  # права Управление и отдел
+    permission_management = 'workers.WorkerClosed_management_change'  # права высшее руководство
+    permission_subdivision = 'workers.WorkerClosed_subdivision_change'  # права Управление
+    permission_department = 'workers.WorkerClosed_department_change'  # права отдел
+    permission_his = 'workers.WorkerClosed_his_change'  # права на самостоятельное редактирование
 
     # Управление по slug
     def get_object(self, queryset=None):
@@ -576,16 +580,16 @@ class WorkerClosed_Passport(LoginRequiredMixin, WorkerClosedPermissionsUpdateMix
         return reverse('workers_passport', kwargs={'workers_slug': self.kwargs['workers_slug']})
 
 
-class WorkerClosed_Passport_Delete(LoginRequiredMixin, WorkerClosedPermissionsUpdateMixin, DetailView):
+class WorkerClosed_Passport_Delete(LoginRequiredMixin, WorkersAccessMixin_WorkerClosed, DetailView):
     """Удаление паспорта """
     model = WorkerClosed
     template_name = 'typical/file_delete.html'
 
     login_url = 'login'
-    permission = 'workers.WorkerClosed_change_all'  # права высшее руководство
-    permission_his = 'workers.WorkerClosed_his_change'  # права редактирования самого себя
-    permission_subdivision = 'workers.WorkerClosed_change_subdivision'  # права Управление
-    permission_subdivision_department = 'workers.WorkerClosed_change'  # права Управление и отдел
+    permission_management = 'workers.WorkerClosed_management_change'  # права высшее руководство
+    permission_subdivision = 'workers.WorkerClosed_subdivision_change'  # права Управление
+    permission_department = 'workers.WorkerClosed_department_change'  # права отдел
+    permission_his = 'workers.WorkerClosed_his_change'  # права на самостоятельное редактирование
 
     def post(self, request, *args, **kwargs):
         # Удаляем паспорт
@@ -617,17 +621,17 @@ class WorkerClosed_Passport_Delete(LoginRequiredMixin, WorkerClosedPermissionsUp
         return context
 
 
-class WorkerClosed_Snils(LoginRequiredMixin, WorkerClosedPermissionsUpdateMixin, UpdateView):
+class WorkerClosed_Snils(LoginRequiredMixin, WorkersAccessMixin_WorkerClosed, UpdateView):
     """Добавление снилс на сайт"""
     model = WorkerClosed
     template_name = 'user/worker/editing/workerclosed_snils.html'
     form_class = WorkerClosed_Form_Upload_Snils
 
     login_url = 'login'
-    permission = 'workers.WorkerClosed_change_all'  # права высшее руководство
-    permission_his = 'workers.WorkerClosed_his_change'  # права редактирования самого себя
-    permission_subdivision = 'workers.WorkerClosed_change_subdivision'  # права Управление
-    permission_subdivision_department = 'workers.WorkerClosed_change'  # права Управление и отдел
+    permission_management = 'workers.WorkerClosed_management_change'  # права высшее руководство
+    permission_subdivision = 'workers.WorkerClosed_subdivision_change'  # права Управление
+    permission_department = 'workers.WorkerClosed_department_change'  # права отдел
+    permission_his = 'workers.WorkerClosed_his_change'  # права на самостоятельное редактирование
 
     # Управление по slug
     def get_object(self, queryset=None):
@@ -653,16 +657,16 @@ class WorkerClosed_Snils(LoginRequiredMixin, WorkerClosedPermissionsUpdateMixin,
         return reverse('workers_snils', kwargs={'workers_slug': self.kwargs['workers_slug']})
 
 
-class WorkerClosed_Snils_Delete(LoginRequiredMixin, WorkerClosedPermissionsUpdateMixin, DetailView):
+class WorkerClosed_Snils_Delete(LoginRequiredMixin, WorkersAccessMixin_WorkerClosed, DetailView):
     """Удаление снилс"""
     model = WorkerClosed
     template_name = 'typical/file_delete.html'
 
     login_url = 'login'
-    permission = 'workers.WorkerClosed_change_all'  # права высшее руководство
-    permission_his = 'workers.WorkerClosed_his_change'  # права редактирования самого себя
-    permission_subdivision = 'workers.WorkerClosed_change_subdivision'  # права Управление
-    permission_subdivision_department = 'workers.WorkerClosed_change'  # права Управление и отдел
+    permission_management = 'workers.WorkerClosed_management_change'  # права высшее руководство
+    permission_subdivision = 'workers.WorkerClosed_subdivision_change'  # права Управление
+    permission_department = 'workers.WorkerClosed_department_change'  # права отдел
+    permission_his = 'workers.WorkerClosed_his_change'  # права на самостоятельное редактирование
 
     def post(self, request, *args, **kwargs):
         # Удаляем паспорт
@@ -686,17 +690,17 @@ class WorkerClosed_Snils_Delete(LoginRequiredMixin, WorkerClosedPermissionsUpdat
         return context
 
 
-class WorkerClosed_Inn(LoginRequiredMixin, WorkerClosedPermissionsUpdateMixin, UpdateView):
+class WorkerClosed_Inn(LoginRequiredMixin, WorkersAccessMixin_WorkerClosed, UpdateView):
     """Добавление инн на сайт"""
     model = WorkerClosed
     template_name = 'user/worker/editing/workerclosed_inn.html'
     form_class = WorkerClosed_Form_Upload_Inn
 
     login_url = 'login'
-    permission = 'workers.WorkerClosed_change_all'  # права высшее руководство
-    permission_his = 'workers.WorkerClosed_his_change'  # права редактирования самого себя
-    permission_subdivision = 'workers.WorkerClosed_change_subdivision'  # права Управление
-    permission_subdivision_department = 'workers.WorkerClosed_change'  # права Управление и отдел
+    permission_management = 'workers.WorkerClosed_management_change'  # права высшее руководство
+    permission_subdivision = 'workers.WorkerClosed_subdivision_change'  # права Управление
+    permission_department = 'workers.WorkerClosed_department_change'  # права отдел
+    permission_his = 'workers.WorkerClosed_his_change'  # права на самостоятельное редактирование
 
     # Управление по slug
     def get_object(self, queryset=None):
@@ -722,16 +726,16 @@ class WorkerClosed_Inn(LoginRequiredMixin, WorkerClosedPermissionsUpdateMixin, U
         return reverse('workers_inn', kwargs={'workers_slug': self.kwargs['workers_slug']})
 
 
-class WorkerClosed_Inn_Delete(LoginRequiredMixin, WorkerClosedPermissionsUpdateMixin, DetailView):
+class WorkerClosed_Inn_Delete(LoginRequiredMixin, WorkersAccessMixin_WorkerClosed, DetailView):
     """Удаление инн"""
     model = WorkerClosed
     template_name = 'typical/file_delete.html'
 
     login_url = 'login'
-    permission = 'workers.WorkerClosed_change_all'  # права высшее руководство
-    permission_his = 'workers.WorkerClosed_his_change'  # права редактирования самого себя
-    permission_subdivision = 'workers.WorkerClosed_change_subdivision'  # права Управление
-    permission_subdivision_department = 'workers.WorkerClosed_change'  # права Управление и отдел
+    permission_management = 'workers.WorkerClosed_management_change'  # права высшее руководство
+    permission_subdivision = 'workers.WorkerClosed_subdivision_change'  # права Управление
+    permission_department = 'workers.WorkerClosed_department_change'  # права отдел
+    permission_his = 'workers.WorkerClosed_his_change'  # права на самостоятельное редактирование
 
     def post(self, request, *args, **kwargs):
         # Удаляем инн
@@ -755,17 +759,17 @@ class WorkerClosed_Inn_Delete(LoginRequiredMixin, WorkerClosedPermissionsUpdateM
         return context
 
 
-class WorkerClosed_Archive(LoginRequiredMixin, WorkerClosedPermissionsUpdateMixin, UpdateView):
+class WorkerClosed_Archive(LoginRequiredMixin, WorkersAccessMixin_WorkerClosed, UpdateView):
     """Добавление архива на сайт"""
     model = WorkerClosed
     template_name = 'user/worker/editing/workerclosed_archive.html'
     form_class = WorkerClosed_Form_Upload_Archive
 
     login_url = 'login'
-    permission = 'workers.WorkerClosed_change_all'  # права высшее руководство
-    permission_his = 'workers.WorkerClosed_his_change'  # права редактирования самого себя
-    permission_subdivision = 'workers.WorkerClosed_change_subdivision'  # права Управление
-    permission_subdivision_department = 'workers.WorkerClosed_change'  # права Управление и отдел
+    permission_management = 'workers.WorkerClosed_management_change'  # права высшее руководство
+    permission_subdivision = 'workers.WorkerClosed_subdivision_change'  # права Управление
+    permission_department = 'workers.WorkerClosed_department_change'  # права отдел
+    permission_his = 'workers.WorkerClosed_his_change'  # права на самостоятельное редактирование
 
     # Управление по slug
     def get_object(self, queryset=None):
@@ -791,16 +795,16 @@ class WorkerClosed_Archive(LoginRequiredMixin, WorkerClosedPermissionsUpdateMixi
         return reverse('workers_archive', kwargs={'workers_slug': self.kwargs['workers_slug']})
 
 
-class WorkerClosed_Archive_Delete(LoginRequiredMixin, WorkerClosedPermissionsUpdateMixin, DetailView):
+class WorkerClosed_Archive_Delete(LoginRequiredMixin, WorkersAccessMixin_WorkerClosed, DetailView):
     """Удаление архива"""
     model = WorkerClosed
     template_name = 'typical/file_delete.html'
 
     login_url = 'login'
-    permission = 'workers.WorkerClosed_change_all'  # права высшее руководство
-    permission_his = 'workers.WorkerClosed_his_change'  # права редактирования самого себя
-    permission_subdivision = 'workers.WorkerClosed_change_subdivision'  # права Управление
-    permission_subdivision_department = 'workers.WorkerClosed_change'  # права Управление и отдел
+    permission_management = 'workers.WorkerClosed_management_change'  # права высшее руководство
+    permission_subdivision = 'workers.WorkerClosed_subdivision_change'  # права Управление
+    permission_department = 'workers.WorkerClosed_department_change'  # права отдел
+    permission_his = 'workers.WorkerClosed_his_change'  # права на самостоятельное редактирование
 
     def post(self, request, *args, **kwargs):
         # Удаляем архив
@@ -824,17 +828,17 @@ class WorkerClosed_Archive_Delete(LoginRequiredMixin, WorkerClosedPermissionsUpd
         return context
 
 
-class WorkerClosed_Signature(LoginRequiredMixin, WorkerClosedPermissionsUpdateMixin, UpdateView):
+class WorkerClosed_Signature(LoginRequiredMixin, WorkersAccessMixin_WorkerClosed, UpdateView):
     """Добавление подписи на сайт"""
     model = WorkerClosed
     template_name = 'user/worker/editing/workerclosed_signature.html'
     form_class = WorkerClosed_Form_Upload_Signature
 
     login_url = 'login'
-    permission = 'workers.WorkerClosed_change_all'  # права высшее руководство
-    permission_his = 'workers.WorkerClosed_his_change'  # права редактирования самого себя
-    permission_subdivision = 'workers.WorkerClosed_change_subdivision'  # права Управление
-    permission_subdivision_department = 'workers.WorkerClosed_change'  # права Управление и отдел
+    permission_management = 'workers.WorkerClosed_management_change'  # права высшее руководство
+    permission_subdivision = 'workers.WorkerClosed_subdivision_change'  # права Управление
+    permission_department = 'workers.WorkerClosed_department_change'  # права отдел
+    permission_his = 'workers.WorkerClosed_his_change'  # права на самостоятельное редактирование
 
     # Управление по slug
     def get_object(self, queryset=None):
@@ -852,16 +856,16 @@ class WorkerClosed_Signature(LoginRequiredMixin, WorkerClosedPermissionsUpdateMi
         return reverse('workers_signature', kwargs={'workers_slug': self.kwargs['workers_slug']})
 
 
-class WorkerClosed_Signature_Delete(LoginRequiredMixin, WorkerClosedPermissionsUpdateMixin, DetailView):
+class WorkerClosed_Signature_Delete(LoginRequiredMixin, WorkersAccessMixin_WorkerClosed, DetailView):
     """Удаление подписи"""
     model = WorkerClosed
     template_name = 'typical/file_delete.html'
 
     login_url = 'login'
-    permission = 'workers.WorkerClosed_change_all'  # права высшее руководство
-    permission_his = 'workers.WorkerClosed_his_change'  # права редактирования самого себя
-    permission_subdivision = 'workers.WorkerClosed_change_subdivision'  # права Управление
-    permission_subdivision_department = 'workers.WorkerClosed_change'  # права Управление и отдел
+    permission_management = 'workers.WorkerClosed_management_change'  # права высшее руководство
+    permission_subdivision = 'workers.WorkerClosed_subdivision_change'  # права Управление
+    permission_department = 'workers.WorkerClosed_department_change'  # права отдел
+    permission_his = 'workers.WorkerClosed_his_change'  # права на самостоятельное редактирование
 
     def post(self, request, *args, **kwargs):
         # Удаляем архив

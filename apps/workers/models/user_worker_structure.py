@@ -13,7 +13,7 @@ class Subdivision(models.Model):
     abbreviation = models.CharField(max_length=100, unique=True, verbose_name='Сокращенное название')
     description = models.CharField(max_length=255, blank=True, verbose_name='Описание')  # blank=True Пустое имя поля
     slug = models.SlugField(max_length=100, unique=True, db_index=True,
-                            verbose_name='URL')  # unique - Уникальное,db_index - индексируемое
+                            verbose_name='URL')
 
     def __str__(self):
         return '{0}({1})'.format(self.name, self.abbreviation)
@@ -32,10 +32,10 @@ class Subdivision(models.Model):
         ordering = ['pk']
         default_permissions = ('')
         permissions = (
-            ('subdivision_add', 'Управление/Подразделение. Добавить.'),
-            ('subdivision_change', 'Управление/Подразделение. Редактировать.'),
-            ('subdivision_delete', 'Управление/Подразделение. Удалить.'),
-            ('subdivision_view', 'Управление/Подразделение. Просмотреть.'),
+            ('Subdivision_add', 'Управление/Подразделение. Добавить.'),
+            ('Subdivision_change', 'Управление/Подразделение. Редактировать.'),
+            ('Subdivision_delete', 'Управление/Подразделение. Удалить.'),
+            ('Subdivision_view', 'Управление/Подразделение. Просмотреть.'),
         )
 
 
@@ -63,10 +63,10 @@ class Department(models.Model):
         ordering = ['pk']
         default_permissions = ('')
         permissions = (
-            ('department_add', 'Отдел. Добавить.'),
-            ('department_change', 'Отдел. Редактировать.'),
-            ('department_delete', 'Отдел. Удалить.'),
-            ('department_view', 'Отдел. Просмотреть.'),
+            ('Department_add', 'Отдел. Добавить.'),
+            ('Department_change', 'Отдел. Редактировать.'),
+            ('Department_delete', 'Отдел. Удалить.'),
+            ('Department_view', 'Отдел. Просмотреть.'),
         )
 
 
@@ -96,11 +96,11 @@ class Chief(models.Model):
         ordering = ['-rights']
         default_permissions = ('')
         permissions = (
-            ('chief_add', 'Должность. Добавить.'),
-            ('chief_change', 'Должность. Редактировать.'),
-            ('chief_delete', 'Должность. Удалить.'),
-            ('chief_view', 'Должность. Просмотреть.'),
-            ('chief_permissions', 'Должность. Права должности.'),
+            ('Chief_add', 'Должность. Добавить.'),
+            ('Chief_change', 'Должность. Редактировать.'),
+            ('Chief_delete', 'Должность. Удалить.'),
+            ('Chief_view', 'Должность. Просмотреть.'),
+            ('Chief_permissions', 'Должность. Права должности.'),
         )
 
 

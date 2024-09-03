@@ -8,15 +8,20 @@ from apps.workers.views import Subdivision_View, Subdivision_Add, Subdivision_Up
     WorkerClosed_Archive_Delete, WorkerClosed_Signature, WorkerClosed_Signature_Delete, OrganizationExploitation_View, \
     OrganizationExploitation_Update, OrganizationExploitation_Add
 
-from apps.workers.views.user_worker_planning import InformationMissing_View, InformationMissing_Add, \
-    Workers_Work_Planning_View, InformationMissing_Update, InformationWeekendsHolidays_View, \
-    InformationWeekendsHolidays_Add, InformationWeekendsHolidays_Update, WorkersMissing_View, WorkersMissing_Add, \
-    WorkersMissing_Update, WorkersWeekendWork_Update, WorkersWeekendWork_Add, WorkersWeekendWork_View, \
-    WorkersWeekendWork_Time_Update, WorkersMission_View, WorkersMission_Add, WorkersMission_Update, \
-    Workers_Work_Planning_Subdivision_View, Workers_Work_Planning_Department_View, WorkersMissing_UserHis_View, \
-    WorkersMissing_UserHis_Add, WorkersMissing_UserHis_Update, WorkersMissing_Department_View, \
-    WorkersMissing_Subdivision_View, WorkersMissing_Subdivision_Add, WorkersMissing_Department_Add, \
-    WorkersMissing_Subdivision_Update, WorkersMissing_Department_Update
+from apps.workers.views.user_worker_planning import \
+    InformationWeekendsHolidays_View, \
+    InformationWeekendsHolidays_Add, InformationWeekendsHolidays_Update, \
+    WorkersWeekendWork_Update, WorkersWeekendWork_Add, WorkersWeekendWork_View, \
+    WorkersWeekendWork_Time_Update, \
+    Workers_Work_PlanningManagement_View, Workers_Work_PlanningSubdivision_View, Workers_Work_PlanningDepartment_View, \
+    Workers_Work_PlanningHis_View
+from apps.workers.views.user_worker_planning_missing import WorkersMissing_View, WorkersMissing_Subdivision_View, \
+    WorkersMissing_Department_View, WorkersMissing_Add, WorkersMissing_Subdivision_Add, WorkersMissing_Department_Add, \
+    WorkersMissing_Update, WorkersMissing_Subdivision_Update, WorkersMissing_Department_Update, \
+    WorkersMissing_UserHis_View, WorkersMissing_UserHis_Add, WorkersMissing_UserHis_Update, InformationMissing_View, \
+    InformationMissing_Add, InformationMissing_Update, WorkersMissingManagement_View
+from apps.workers.views.user_worker_planning_mission import WorkersMission_View, WorkersMission_Add, \
+    WorkersMission_Update
 
 urlpatterns = [
     path('user/workers/subdivision/', Subdivision_View.as_view(), name='subdivision'),
@@ -33,9 +38,8 @@ urlpatterns = [
          name='chief_update'),
     path('user/workers/chief/<int:pk>/permissions/', Group_Permissions.as_view(), name='chief_permissions'),
 
-    path('user/workers/planning/', Workers_Work_Planning_View.as_view(),
+    path('user/workers/planning/', Workers_Work_PlanningManagement_View.as_view(),
          name='workers_planning'),
-
 
 
     path('user/workers/', Workers.as_view(), name='workers'),
@@ -69,31 +73,23 @@ urlpatterns = [
     path('user/workers/<slug:workers_slug>/signature/delete/', WorkerClosed_Signature_Delete.as_view(),
          name='workers_signature_delete'),
 
-
-
-
-
-
-
-
     path('user/exploitations/organizations/', OrganizationExploitation_View.as_view(), name='organizationExploitation'),
     path('user/exploitations/organizations/update/<slug:organizationExploitation_slug>',
          OrganizationExploitation_Update.as_view(), name='organizationExploitation_update'),
     path('user/exploitations/organizations/add', OrganizationExploitation_Add.as_view(),
          name='organizationExploitation_add'),
 
-
-
-    path('user/workers/planning/missing/', WorkersMissing_View.as_view(),
+    path('user/workers/planning/missing/', WorkersMissingManagement_View.as_view(),
          name='workers_missing'),
     path('user/workers/planning/<slug:subdivision_slug>/missing/', WorkersMissing_Subdivision_View.as_view(),
          name='workers_missing_subdivision'),
-    path('user/workers/planning/<slug:subdivision_slug>/<slug:department_slug>/missing/', WorkersMissing_Department_View.as_view(),
+    path('user/workers/planning/<slug:subdivision_slug>/<slug:department_slug>/missing/',
+         WorkersMissing_Department_View.as_view(),
          name='workers_missing_subdivision_department'),
 
     path('user/workers/planning/missing/add/', WorkersMissing_Add.as_view(),
          name='workers_missing_add'),
-    path('user/workers/planning/missing/<slug:subdivision_slug>/add', WorkersMissing_Subdivision_Add.as_view(),
+    path('user/workers/planning/<slug:subdivision_slug>/missing/add', WorkersMissing_Subdivision_Add.as_view(),
          name='workers_missing_subdivision_add'),
     path('user/workers/planning/<slug:subdivision_slug>/<slug:department_slug>/missing/add',
          WorkersMissing_Department_Add.as_view(),
@@ -101,7 +97,8 @@ urlpatterns = [
 
     path('user/workers/planning/missing/update/<int:pk>', WorkersMissing_Update.as_view(),
          name='workers_missing_update'),
-    path('user/workers/planning/missing/<slug:subdivision_slug>/update/<int:pk>', WorkersMissing_Subdivision_Update.as_view(),
+    path('user/workers/planning/missing/<slug:subdivision_slug>/update/<int:pk>',
+         WorkersMissing_Subdivision_Update.as_view(),
          name='workers_missing_subdivision_update'),
     path('user/workers/planning/<slug:subdivision_slug>/<slug:department_slug>/missing/update/<int:pk>',
          WorkersMissing_Department_Update.as_view(),
@@ -114,13 +111,12 @@ urlpatterns = [
     path('user/workers/<slug:workers_slug>/missing/update/<int:pk>', WorkersMissing_UserHis_Update.as_view(),
          name='workers_missing_userHis_update'),
 
-
-
-
-    path('user/workers/planning/<slug:subdivision_slug>', Workers_Work_Planning_Subdivision_View.as_view(),
+    path('user/workers/planning/<slug:subdivision_slug>', Workers_Work_PlanningSubdivision_View.as_view(),
          name='workers_planning_subdivision'),
-    path('user/workers/planning/<slug:subdivision_slug>/<slug:department_slug>', Workers_Work_Planning_Department_View.as_view(),
+    path('user/workers/planning/<slug:subdivision_slug>/<slug:department_slug>',
+         Workers_Work_PlanningDepartment_View.as_view(),
          name='workers_planning_subdivision_department'),
+    path('user/workers/planning/his/', Workers_Work_PlanningHis_View.as_view(), name='workers_planning_his'),
 
 
     path('workers/planning/weekendwork/', WorkersWeekendWork_View.as_view(),
@@ -141,7 +137,8 @@ urlpatterns = [
 
     #
     path('user/workers/planning/informationmissing/', InformationMissing_View.as_view(), name='informationmissing'),
-    path('user/workers/planning/informationmissing/add/', InformationMissing_Add.as_view(), name='informationmissing_add'),
+    path('user/workers/planning/informationmissing/add/', InformationMissing_Add.as_view(),
+         name='informationmissing_add'),
     path('user/workers/planning/informationmissing/update/<slug:informationmissing_slug>',
          InformationMissing_Update.as_view(),
          name='informationmissing_update'),
@@ -153,6 +150,5 @@ urlpatterns = [
          InformationWeekendsHolidays_Update.as_view(), name='informationweekendsholidays_update'),
 
     #
-
 
 ]

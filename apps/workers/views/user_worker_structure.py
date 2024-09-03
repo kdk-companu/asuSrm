@@ -9,10 +9,10 @@ from django.views.generic import ListView, UpdateView, CreateView
 from apps.workers.forms import Form_Department_Control, Form_Subdivision_Control, Form_Chief_Control, \
     Group_Form_Permissions
 from apps.workers.models import Department, Subdivision, Chief
-from mixin.workers_right import WorkerPermissionsBased
+from mixin.access.access import AccessProjectMixin
 
 
-class Subdivision_View(LoginRequiredMixin, WorkerPermissionsBased, ListView):
+class Subdivision_View(LoginRequiredMixin, AccessProjectMixin, ListView):
     """Управление/Подразделение"""
     model = Subdivision
     template_name = 'user/worker/structure/subdivision.html'
@@ -34,7 +34,7 @@ class Subdivision_View(LoginRequiredMixin, WorkerPermissionsBased, ListView):
         return render(self.request, self.template_name, context)
 
 
-class Subdivision_Update(LoginRequiredMixin, WorkerPermissionsBased, UpdateView):
+class Subdivision_Update(LoginRequiredMixin, AccessProjectMixin, UpdateView):
     """Управление/Подразделение"""
     model = Subdivision
     template_name = 'user/worker/structure/subdivision_control.html'
@@ -55,7 +55,7 @@ class Subdivision_Update(LoginRequiredMixin, WorkerPermissionsBased, UpdateView)
         return context
 
 
-class Subdivision_Add(LoginRequiredMixin, WorkerPermissionsBased, CreateView):
+class Subdivision_Add(LoginRequiredMixin, AccessProjectMixin, CreateView):
     """Управление/Подразделение"""
     model = Subdivision
     template_name = 'user/worker/structure/subdivision_control.html'
@@ -72,7 +72,7 @@ class Subdivision_Add(LoginRequiredMixin, WorkerPermissionsBased, CreateView):
         return context
 
 
-class Department_View(LoginRequiredMixin, WorkerPermissionsBased, ListView):
+class Department_View(LoginRequiredMixin, AccessProjectMixin, ListView):
     """Департамент/Управление"""
     model = Department
     template_name = 'user/worker/structure/department.html'
@@ -94,7 +94,7 @@ class Department_View(LoginRequiredMixin, WorkerPermissionsBased, ListView):
         return render(self.request, self.template_name, context)
 
 
-class Department_Update(LoginRequiredMixin, WorkerPermissionsBased, UpdateView):
+class Department_Update(LoginRequiredMixin, AccessProjectMixin, UpdateView):
     """Департамент. Изменение"""
     model = Department
     template_name = 'user/worker/structure/department_control.html'
@@ -116,7 +116,7 @@ class Department_Update(LoginRequiredMixin, WorkerPermissionsBased, UpdateView):
         return context
 
 
-class Department_Add(LoginRequiredMixin, WorkerPermissionsBased, CreateView):
+class Department_Add(LoginRequiredMixin, AccessProjectMixin, CreateView):
     """Департамент. Добавление"""
     model = Department
     template_name = 'user/worker/structure/department_control.html'
@@ -132,7 +132,7 @@ class Department_Add(LoginRequiredMixin, WorkerPermissionsBased, CreateView):
         return context
 
 
-class Chief_View(LoginRequiredMixin, WorkerPermissionsBased, ListView):
+class Chief_View(LoginRequiredMixin, AccessProjectMixin, ListView):
     """Должность"""
     model = Chief
     template_name = 'user/worker/structure/chief.html'
@@ -154,7 +154,7 @@ class Chief_View(LoginRequiredMixin, WorkerPermissionsBased, ListView):
         return render(self.request, self.template_name, context)
 
 
-class Chief_Update(LoginRequiredMixin, WorkerPermissionsBased, UpdateView):
+class Chief_Update(LoginRequiredMixin, AccessProjectMixin, UpdateView):
     """Должность. Изменение"""
     model = Chief
     template_name = 'user/worker/structure/chief_control.html'
@@ -175,7 +175,7 @@ class Chief_Update(LoginRequiredMixin, WorkerPermissionsBased, UpdateView):
         return context
 
 
-class Chief_Add(LoginRequiredMixin, WorkerPermissionsBased, CreateView):
+class Chief_Add(LoginRequiredMixin, AccessProjectMixin, CreateView):
     """Должность. Добавление"""
     model = Chief
     template_name = 'user/worker/structure/chief_control.html'
@@ -191,7 +191,7 @@ class Chief_Add(LoginRequiredMixin, WorkerPermissionsBased, CreateView):
         return context
 
 
-class Group_Permissions(LoginRequiredMixin, WorkerPermissionsBased,UpdateView):
+class Group_Permissions(LoginRequiredMixin, AccessProjectMixin, UpdateView):
     """Управление группами"""
     model = Group
     form_class = Group_Form_Permissions
