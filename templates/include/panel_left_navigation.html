@@ -34,7 +34,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    {% if perms.workers.WorkersPlanning_view_all or perms.workers.WorkersPlanning_view_subdivision or perms.workers.WorkersPlanning_view_department%}
+                    {% if perms.workers.WorkersPlannig_department_view or perms.workers.WorkersPlannig_subdivision_view or perms.workers.WorkersPlannig_management_view or perms.workers.WorkersPlannig_his_view%}
                     <a href="{%url 'workers_planning'%}" class="nav-link">
                         <i class="nav-icon fa fa-book"></i>
                         <p>Планирование работ</p>

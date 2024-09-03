@@ -1,0 +1,25 @@
+{% extends 'base.html'%}
+{% load static %}
+{% block content_header %}
+<li class="breadcrumb-item active">{{title}}</li>
+{% endblock %}
+{% block content %}
+<!-- Content Wrapper. Contains page content -->
+<div class="content-wrapper">
+    <!-- Main content -->
+    <section class="content">
+        <div class="error-page">
+            <h2 class="headline text-warning"> 403 </h2>
+            <div class="error-content">
+                <h3><i class="fas fa-exclamation-triangle text-warning"></i> Отказ в доступе.</h3>
+                <p>
+                    У вас нет прав для просмотра данной страницы.
+                </p>
+            </div>
+            <!-- /.error-content -->
+        </div>
+        <!-- /.error-page -->
+    </section>
+    <!-- /.content -->
+</div>
+{% endblock %}
