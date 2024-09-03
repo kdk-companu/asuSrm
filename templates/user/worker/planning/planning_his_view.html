@@ -44,7 +44,21 @@
 </style>
 {% endblock %}
 {% block content_header %}
-<li class="breadcrumb-item">{{title}}</li>
+<li class="breadcrumb-item"><a href="{% url 'workers_planning'%}">{{title}}</a></li>
+{% if perms.workers.WorkersPlannig_subdivision_view %}
+{% if worker.actual_subdivision%}
+<li class="breadcrumb-item">
+    <a href="{% url 'workers_planning_subdivision' worker.actual_subdivision.slug %}">{{worker.actual_subdivision.abbreviation}}</a>
+</li>
+{%endif%}
+{%endif%}
+{% if perms.workers.WorkersPlannig_department_view %}
+{% if worker.actual_subdivision and worker.actual_department%}
+<li class="breadcrumb-item">
+    <a href="{% url 'workers_planning_subdivision_department' worker.actual_subdivision.slug worker.actual_department.slug%}">{{worker.actual_department.abbreviation}}</a>
+</li>
+{%endif%}
+{%endif%}
 {% endblock %}
 {% block content %}
 <!-- Поиск -->
@@ -62,8 +76,6 @@
                 {% endif %}
                 <form action="" method="get">
                     <div class="row">
-                        <div class="col form-group">{{form_filter.subdivision}}</div>
-                        <div class="col form-group">{{form_filter.department}}</div>
                         <div class="col form-group">{{form_filter.length}}</div>
                         <div class="col form-group">{{form_filter.month}}</div>
                         <div class="col form-group">{{form_filter.year}}</div>
@@ -71,7 +83,7 @@
                             <button type="submit" class="btn btn-md btn-default"><i class="fa fa-search"></i></button>
                         </div>
                         <div class="col-xs form-group ">
-                            <a href="{% url 'workers_planning'%}" type="submit" class="btn btn-md btn-default">
+                            <a href=" url 'workers_planning_subdivision_department' title_user.0.actual_subdivision.slug title_user.0.actual_department.slug%}" type="submit" class="btn btn-md btn-default">
                                 <i class="fa fa-eraser"></i>
                             </a>
                         </div>
@@ -92,7 +104,6 @@
             <!-- Заголовок -->
             <div class="card-header">
                 <h3 class="card-title">
-                    <i class="fa fa-user"></i>
                     {{title}}
                 </h3>
                 <div class="bd-example m-0 float-right">
@@ -104,8 +115,8 @@
                     <a type="submit" class="btn btn-primary btn-xs " href="{% url 'informationweekendsholidays'%}">Информация
                         о выходных днях и праздниках</a>
                     {%endif%}
-                    {% if perms.workers.WorkersMissing_add %}
-                    <a type="submit" class="btn btn-success btn-xs " href="{% url 'workers_missing' %}">Отсутствие сотрудника</a>
+                    {% if perms.workers.WorkersMissing_view%}
+                    <a type="submit" class="btn btn-success btn-xs " href="{% url 'workers_missing'  %}">Отсутствие сотрудника</a>
                     {%endif%}
                     {% if perms.workers.WorkersMission_add %}
                     <a type="submit" class="btn btn-success btn-xs " href="{% url 'workersMission' %}">Командировки</a>
@@ -124,8 +135,6 @@
                     <tr>
                         <!-- Шапка месяца и пользователи//-->
                         <td rowspan="2" width="150">Сотрудиник</td>
-                        <td rowspan="2" width="150">Управление</td>
-                        <td rowspan="2" width="150">Отдел</td>
                         {% for mon,days in calendar.items%}
                         <th colspan="{{days|length}}" width="150">{{mon}}</th>
                         {%endfor%}
@@ -145,8 +154,6 @@
                     {% for worker,graphs in calendar_workers.items%}
                     <tr align="center">
                         <td>{{worker.user.surname}} {{worker.user.name.0}}. {{worker.user.patronymic.0}}.</td>
-                        <td>{{worker.actual_subdivision.abbreviation}}</td>
-                        <td>{{worker.actual_department.abbreviation}}</td>
                         {% for graph in graphs%}
                         <td style="background:{{graph.3}}; ng-hide=true" colspan="{{graph.1}}">{{graph.2}}
                         </td>
