@@ -15,7 +15,7 @@
                     {{title}}
                 </h3>
                 <div class="bd-example m-0 float-right">
-                    {% if perms.workers.chief_add %}
+                    {% if perms.workers.Chief_add %}
                     <a type="submit" class="btn btn-success btn-xs " href="{% url 'chief_add' %}">
                         Добавить должность</a>
                     {%endif%}
@@ -38,15 +38,15 @@
                         <td>{{chief.abbreviation}}</td>
                         <td>{{chief.rights}}</td>
                         <td width="130px">
-                            {% if perms.workers.chief_permissions %}
+                            {% if perms.workers.Chief_permissions %}
                             <a class="btn btn-info btn-sm" href="{%url 'chief_permissions' chief.id%}"><i
                                     class="fa fa-certificate"></i></a>
                             {%endif%}
-                            {% if perms.workers.chief_change %}
+                            {% if perms.workers.Chief_change %}
                             <a class="btn btn-info btn-sm" href="{%url 'chief_update' chief.slug%}"><i
                                     class="fas fa-pencil-alt"></i></a>
                             {%endif%}
-                            {% if perms.workers.chief_delete %}
+                            {% if perms.workers.Chief_delete %}
                             <a class="remove-chief btn btn-danger btn-sm" data-toggle="modal"
                                data-target="#modal-default" data-slug="{{chief.slug}}"
                                data-text="{{chief.name}}"><i class="fas fa-trash"></i></a>

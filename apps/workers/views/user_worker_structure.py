@@ -9,18 +9,18 @@ from django.views.generic import ListView, UpdateView, CreateView
 from apps.workers.forms import Form_Department_Control, Form_Subdivision_Control, Form_Chief_Control, \
     Group_Form_Permissions
 from apps.workers.models import Department, Subdivision, Chief
-from mixin.access.access import AccessProjectMixin
+from mixin.access.workers.workers import WorkersAccessMixin, WorkersBasicAccessMixin
 
 
-class Subdivision_View(LoginRequiredMixin, AccessProjectMixin, ListView):
+class Subdivision_View(LoginRequiredMixin, WorkersBasicAccessMixin, ListView):
     """Управление/Подразделение"""
     model = Subdivision
     template_name = 'user/worker/structure/subdivision.html'
     login_url = 'login'
-    permission_required = 'workers.subdivision_view'
+    permission_required = 'workers.Subdivision_view'
 
     def get(self, *args, **kwargs):
-        if self.request.user.has_perm('workers.subdivision_delete'):
+        if self.request.user.has_perm('workers.Subdivision_delete'):
             query = self.request.GET.get('remove')
             if query is not None:
                 try:
@@ -34,14 +34,14 @@ class Subdivision_View(LoginRequiredMixin, AccessProjectMixin, ListView):
         return render(self.request, self.template_name, context)
 
 
-class Subdivision_Update(LoginRequiredMixin, AccessProjectMixin, UpdateView):
+class Subdivision_Update(LoginRequiredMixin, WorkersBasicAccessMixin, UpdateView):
     """Управление/Подразделение"""
     model = Subdivision
     template_name = 'user/worker/structure/subdivision_control.html'
     form_class = Form_Subdivision_Control
     success_url = reverse_lazy('subdivision')
     login_url = 'login'
-    permission_required = 'workers.subdivision_change'
+    permission_required = 'workers.Subdivision_change'
 
     # Управление по slug
     def get_object(self, queryset=None):
@@ -55,14 +55,14 @@ class Subdivision_Update(LoginRequiredMixin, AccessProjectMixin, UpdateView):
         return context
 
 
-class Subdivision_Add(LoginRequiredMixin, AccessProjectMixin, CreateView):
+class Subdivision_Add(LoginRequiredMixin, WorkersBasicAccessMixin, CreateView):
     """Управление/Подразделение"""
     model = Subdivision
     template_name = 'user/worker/structure/subdivision_control.html'
     form_class = Form_Subdivision_Control
     success_url = reverse_lazy('subdivision')
     login_url = 'login'
-    permission_required = 'workers.subdivision_add'
+    permission_required = 'workers.Subdivision_add'
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -72,15 +72,15 @@ class Subdivision_Add(LoginRequiredMixin, AccessProjectMixin, CreateView):
         return context
 
 
-class Department_View(LoginRequiredMixin, AccessProjectMixin, ListView):
+class Department_View(LoginRequiredMixin, WorkersBasicAccessMixin, ListView):
     """Департамент/Управление"""
     model = Department
     template_name = 'user/worker/structure/department.html'
     login_url = 'login'
-    permission_required = 'workers.department_view'
+    permission_required = 'workers.Department_view'
 
     def get(self, *args, **kwargs):
-        if self.request.user.has_perm('workers.department_delete'):
+        if self.request.user.has_perm('workers.Department_delete'):
             query = self.request.GET.get('remove')
             if query is not None:
                 try:
@@ -94,14 +94,14 @@ class Department_View(LoginRequiredMixin, AccessProjectMixin, ListView):
         return render(self.request, self.template_name, context)
 
 
-class Department_Update(LoginRequiredMixin, AccessProjectMixin, UpdateView):
+class Department_Update(LoginRequiredMixin, WorkersBasicAccessMixin, UpdateView):
     """Департамент. Изменение"""
     model = Department
     template_name = 'user/worker/structure/department_control.html'
     form_class = Form_Department_Control
     success_url = reverse_lazy('department')
     login_url = 'login'
-    permission_required = 'workers.department_change'
+    permission_required = 'workers.Department_change'
 
     # Управление по slug
     def get_object(self, queryset=None):
@@ -116,14 +116,14 @@ class Department_Update(LoginRequiredMixin, AccessProjectMixin, UpdateView):
         return context
 
 
-class Department_Add(LoginRequiredMixin, AccessProjectMixin, CreateView):
+class Department_Add(LoginRequiredMixin, WorkersBasicAccessMixin, CreateView):
     """Департамент. Добавление"""
     model = Department
     template_name = 'user/worker/structure/department_control.html'
     form_class = Form_Department_Control
     success_url = reverse_lazy('department')
     login_url = 'login'
-    permission_required = 'workers.department_add'
+    permission_required = 'workers.Department_add'
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -132,15 +132,15 @@ class Department_Add(LoginRequiredMixin, AccessProjectMixin, CreateView):
         return context
 
 
-class Chief_View(LoginRequiredMixin, AccessProjectMixin, ListView):
+class Chief_View(LoginRequiredMixin, WorkersBasicAccessMixin, ListView):
     """Должность"""
     model = Chief
     template_name = 'user/worker/structure/chief.html'
     login_url = 'login'
-    permission_required = 'workers.chief_view'
+    permission_required = 'workers.Chief_view'
 
     def get(self, *args, **kwargs):
-        if self.request.user.has_perm('workers.chief_delete'):
+        if self.request.user.has_perm('workers.Chief_delete'):
             query = self.request.GET.get('remove')
             if query is not None:
                 try:
@@ -154,14 +154,14 @@ class Chief_View(LoginRequiredMixin, AccessProjectMixin, ListView):
         return render(self.request, self.template_name, context)
 
 
-class Chief_Update(LoginRequiredMixin, AccessProjectMixin, UpdateView):
+class Chief_Update(LoginRequiredMixin, WorkersBasicAccessMixin, UpdateView):
     """Должность. Изменение"""
     model = Chief
     template_name = 'user/worker/structure/chief_control.html'
     form_class = Form_Chief_Control
     success_url = reverse_lazy('chief')
     login_url = 'login'
-    permission_required = 'workers.chief_change'
+    permission_required = 'workers.Chief_change'
 
     # Управление по slug
     def get_object(self, queryset=None):
@@ -175,14 +175,14 @@ class Chief_Update(LoginRequiredMixin, AccessProjectMixin, UpdateView):
         return context
 
 
-class Chief_Add(LoginRequiredMixin, AccessProjectMixin, CreateView):
+class Chief_Add(LoginRequiredMixin, WorkersBasicAccessMixin, CreateView):
     """Должность. Добавление"""
     model = Chief
     template_name = 'user/worker/structure/chief_control.html'
     form_class = Form_Chief_Control
     success_url = reverse_lazy('chief')
     login_url = 'login'
-    permission_required = 'workers.chief_add'
+    permission_required = 'workers.Chief_add'
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -191,14 +191,14 @@ class Chief_Add(LoginRequiredMixin, AccessProjectMixin, CreateView):
         return context
 
 
-class Group_Permissions(LoginRequiredMixin, AccessProjectMixin, UpdateView):
+class Group_Permissions(LoginRequiredMixin, WorkersBasicAccessMixin, UpdateView):
     """Управление группами"""
     model = Group
     form_class = Group_Form_Permissions
     template_name = 'user/worker/structure/chief_perrmision.html'
 
     login_url = 'login'
-    permission_required = 'workers.chief_permissions'
+    permission_required = 'workers.Chief_permissions'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

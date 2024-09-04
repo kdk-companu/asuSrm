@@ -16,13 +16,11 @@ from apps.workers.forms import Search_Filter, Search_User_Filter, Workers_Add_Fo
     WorkerClosed_Form_Upload_Inn, WorkerClosed_Form_Upload_Archive, WorkerClosed_Form_Upload_Signature, \
     Workers_Form_Change
 from apps.workers.models import Worker, WorkerBasic, WorkerClosed
-from mixin.access.access import AccessProjectMixin
-from mixin.access.workers.workers_access import WorkersAccessMixin_Worker, \
-    WorkersAccessMixin_WorkerBasic, WorkersAccessMixin_WorkerClosed
-from mixin.workers_right import WorkerPermissionsUpdateMixin
+from mixin.access.workers.workers import WorkersAccessMixin_Worker, \
+    WorkersAccessMixin_WorkerBasic, WorkersAccessMixin_WorkerClosed, WorkersAccessMixin, WorkersBasicAccessMixin
 
 
-class Workers(LoginRequiredMixin, AccessProjectMixin, ListView):
+class Workers(LoginRequiredMixin, WorkersBasicAccessMixin, ListView):
     """Вывод всех пользователей"""
     model = WorkerBasic
     template_name = 'user/worker/workers.html'
@@ -64,7 +62,7 @@ class Workers(LoginRequiredMixin, AccessProjectMixin, ListView):
         return context
 
 
-class Workers_Filter(LoginRequiredMixin, AccessProjectMixin, ListView):
+class Workers_Filter(LoginRequiredMixin, WorkersBasicAccessMixin, ListView):
     """Вывод всех пользователей"""
     model = WorkerBasic
     template_name = 'user/worker/workers_filter.html'
@@ -120,7 +118,7 @@ class Workers_Filter(LoginRequiredMixin, AccessProjectMixin, ListView):
         return context
 
 
-class Workers_Add(LoginRequiredMixin, AccessProjectMixin, CreateView):
+class Workers_Add(LoginRequiredMixin, WorkersBasicAccessMixin, CreateView):
     """Добавление нового сотрудника"""
     model = Worker
     template_name = 'user/worker/editing/workers_add.html'
@@ -166,7 +164,7 @@ class Workers_Add(LoginRequiredMixin, AccessProjectMixin, CreateView):
         return reverse('workers_basic_change', kwargs={'workers_slug': upadate_user.slug})
 
 
-class Workers_DetailView(LoginRequiredMixin, AccessProjectMixin, DetailView):
+class Workers_DetailView(LoginRequiredMixin, WorkersBasicAccessMixin, DetailView):
     """Подробная информация о сотруднике"""
     model = Worker
     template_name = 'user/worker/workers_detail.html'
@@ -192,7 +190,7 @@ class Workers_DetailView(LoginRequiredMixin, AccessProjectMixin, DetailView):
         # Страница пользователя
         workerBasic = WorkerBasic.objects.select_related('organization_subdivision', 'organization_department',
                                                          'actual_subdivision', 'actual_department', 'chief').get(
-            user__slug=self.kwargs.get(self.slug_url_kwarg))  # проверить на оптимизацию
+            user__slug=self.kwargs.get(self.slug_url_kwarg))
         # Сверка управлений и отделов
         user_subdivision = False
         user_subdivision_department = False
@@ -335,7 +333,7 @@ class Workers_Change_Password(LoginRequiredMixin, PasswordChangeView):
         return HttpResponseRedirect('')
 
 
-class Workers_Update_Password(LoginRequiredMixin, WorkerPermissionsUpdateMixin, UpdateView):
+class Workers_Update_Password(LoginRequiredMixin, WorkersAccessMixin_Worker, UpdateView):
     """Изменить только по правам"""
     model = WorkerBasic
     template_name = 'user/worker/editing/workers_password_update.html'
@@ -343,9 +341,10 @@ class Workers_Update_Password(LoginRequiredMixin, WorkerPermissionsUpdateMixin, 
     redirect_field_name = ''
 
     login_url = 'login'
-    permission = 'workers.Worker_change_password_all'  # права высшее руководство
-    permission_subdivision = 'workers.Worker_change_password_subdivision'  # права Управление
-    permission_subdivision_department = 'workers.Worker_change_password'  # права Управление и отдел
+    permission_management = "workers.Worker_management_change"  # права высшее руководство
+    permission_subdivision = "workers.Worker_subdivision_change"  # права Управление
+    permission_department = "workers.Worker_department_change"  # права отдел
+    permission_his = "workers.Worker_his_change"  # права на самостоятельное редактирование
 
     # Управление по slug
     def get_object(self, queryset=None):
@@ -369,17 +368,17 @@ class Workers_Update_Password(LoginRequiredMixin, WorkerPermissionsUpdateMixin, 
         return HttpResponseRedirect(self.get_success_url())
 
 
-class Workers_Image(LoginRequiredMixin, WorkerPermissionsUpdateMixin, UpdateView):
+class Workers_Image(LoginRequiredMixin, WorkersAccessMixin_Worker, UpdateView):
     """Добавление аватарок на сайт"""
     model = Worker
     template_name = 'user/worker/editing/workers_images.html'
     form_class = Workers_Form_Upload_Images
 
     login_url = 'login'
-    permission = 'workers.Worker_change_all'  # права высшее руководство
-    permission_his = 'workers.Worker_his_change'  # права редактирования самого себя
-    permission_subdivision = 'workers.Worker_change_subdivision'  # права Управление
-    permission_subdivision_department = 'workers.Worker_change'  # права Управление и отдел
+    permission_management = "workers.Worker_management_change"  # права высшее руководство
+    permission_subdivision = "workers.Worker_subdivision_change"  # права Управление
+    permission_department = "workers.Worker_department_change"  # права отдел
+    permission_his = "workers.Worker_his_change"  # права на самостоятельное редактирование
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -406,15 +405,16 @@ class Workers_Image(LoginRequiredMixin, WorkerPermissionsUpdateMixin, UpdateView
         return reverse('workers_image', kwargs={'workers_slug': self.kwargs['workers_slug']})
 
 
-class User_Permissions(LoginRequiredMixin, WorkerPermissionsUpdateMixin, DetailView):
+class User_Permissions(LoginRequiredMixin, WorkersAccessMixin_Worker, DetailView):
     """Изменение прав доступа"""
     model = Worker
     template_name = 'user/worker/editing/workers_permissions.html'
 
     login_url = 'login'
-    permission = 'workers.Worker_change_permission_all'  # права высшее руководство
-    permission_subdivision = 'workers.Worker_change_permission_subdivision'  # права Управление
-    permission_subdivision_department = 'workers.Worker_change_permission'  # права Управление и отдел
+    permission_management = "workers.Worker_management_change_permission"  # права высшее руководство
+    permission_subdivision = "workers.Worker_subdivision_change_permission"  # права Управление
+    permission_department = "workers.Worker_department_change_permission"  # права отдел
+    permission_his = None  # права на самостоятельное редактирование
 
     def get_object(self, queryset=None):
         instance = Worker.objects.get(slug=self.kwargs.get('workers_slug', ''))

@@ -7,17 +7,15 @@ from apps.workers.forms import WorkersMissingManagement_Filter, WorkersMissing_S
     WorkersMissing_Department_Control, WorkersMissing_UserHis_Control, InformationMissing_Form, WorkersMissing_Control, \
     WorkersMissing_Subdivision_Control, WorkersMissing_Department_Filter
 from apps.workers.models import InformationMissing, WorkersMissing, WorkerBasic
-from mixin.access.access import AccessProjectMixin
-from mixin.access.workers.workers_access import UserAccessMixin
-from mixin.workers_right import WorkerMissingPermissionsViewMixin, \
-    WorkerMissingSubdivisionPermissionsViewMixin, WorkerMissingDepartmentPermissionsViewMixin, \
-    WorkerMissingHisPermissionsUpdateMixin, WorkerMissingUpdateDepartmentPermissionsViewMixin
+from mixin.access.workers.planning import UserAccessMixin
+from mixin.access.workers.workers import WorkersAccessMixin
+
 from django.views.generic import ListView, UpdateView, CreateView, TemplateView
 import datetime
 from django.urls import reverse_lazy, reverse
 
 
-class InformationMissing_View(LoginRequiredMixin, AccessProjectMixin, ListView):
+class InformationMissing_View(LoginRequiredMixin, WorkersAccessMixin, ListView):
     """Причины отсутствия на работе."""
     model = InformationMissing
     template_name = 'user/worker/planning/informationmissing_view.html'
@@ -44,7 +42,7 @@ class InformationMissing_View(LoginRequiredMixin, AccessProjectMixin, ListView):
         return context
 
 
-class InformationMissing_Add(LoginRequiredMixin, AccessProjectMixin, CreateView):
+class InformationMissing_Add(LoginRequiredMixin, WorkersAccessMixin, CreateView):
     """Причины отсутствия на работе."""
     model = InformationMissing
     template_name = 'user/worker/planning/informationmissing_control.html'
@@ -60,7 +58,7 @@ class InformationMissing_Add(LoginRequiredMixin, AccessProjectMixin, CreateView)
         return context
 
 
-class InformationMissing_Update(LoginRequiredMixin, AccessProjectMixin, UpdateView):
+class InformationMissing_Update(LoginRequiredMixin, WorkersAccessMixin, UpdateView):
     """Причины отсутствия на работе."""
     model = InformationMissing
     template_name = 'user/worker/planning/informationmissing_control.html'
@@ -170,7 +168,7 @@ class WorkersMissingManagement_View(UserAccessMixin, WorkersMissingTemplate):
     permission_his = None  # права на самостоятельное редактирование
 
 
-class WorkersMissing_View(LoginRequiredMixin, WorkerMissingPermissionsViewMixin, ListView):
+class WorkersMissing_View(LoginRequiredMixin, ListView):
     paginate_by = 40
     model = WorkersMissing
     template_name = 'user/worker/planning/workersmissing_managment_view.html'
@@ -257,7 +255,7 @@ class WorkersMissing_View(LoginRequiredMixin, WorkerMissingPermissionsViewMixin,
         return context
 
 
-class WorkersMissing_Subdivision_View(LoginRequiredMixin, WorkerMissingSubdivisionPermissionsViewMixin, ListView):
+class WorkersMissing_Subdivision_View(LoginRequiredMixin, ListView):
     paginate_by = 40
     model = WorkersMissing
     template_name = 'user/worker/planning/workersmissing_subdivision.html'
@@ -361,7 +359,7 @@ class WorkersMissing_Subdivision_View(LoginRequiredMixin, WorkerMissingSubdivisi
         return context
 
 
-class WorkersMissing_Department_View(LoginRequiredMixin, WorkerMissingDepartmentPermissionsViewMixin, ListView):
+class WorkersMissing_Department_View(LoginRequiredMixin, ListView):
     paginate_by = 40
     model = WorkersMissing
     template_name = 'user/worker/planning/workersmissing_deparment.html'
@@ -450,7 +448,7 @@ class WorkersMissing_Department_View(LoginRequiredMixin, WorkerMissingDepartment
         return context
 
 
-class WorkersMissing_UserHis_View(LoginRequiredMixin, WorkerMissingHisPermissionsUpdateMixin, ListView):
+class WorkersMissing_UserHis_View(LoginRequiredMixin, ListView):
     model = WorkersMissing
     template_name = 'user/worker/planning/workersmissing_userhis.html'
     context_object_name = 'workers_missings'
@@ -575,7 +573,7 @@ class WorkersMissing_Subdivision_Add(CreateView):
         return reverse('workers_missing_subdivision', kwargs={'subdivision_slug': self.kwargs['subdivision_slug']})
 
 
-class WorkersMissing_Department_Add(LoginRequiredMixin, WorkerMissingDepartmentPermissionsViewMixin, CreateView):
+class WorkersMissing_Department_Add(LoginRequiredMixin, CreateView):
     model = WorkersMissing
     template_name = 'user/worker/planning/workersmissing_department_control.html'
     form_class = WorkersMissing_Department_Control
@@ -612,7 +610,7 @@ class WorkersMissing_Department_Add(LoginRequiredMixin, WorkerMissingDepartmentP
                                'department_slug': self.kwargs['department_slug']})
 
 
-class WorkersMissing_UserHis_Add(LoginRequiredMixin, WorkerMissingHisPermissionsUpdateMixin, CreateView):
+class WorkersMissing_UserHis_Add(LoginRequiredMixin, CreateView):
     model = WorkersMissing
     template_name = 'user/worker/planning/workersmissing_userhis_control.html'
     form_class = WorkersMissing_UserHis_Control
@@ -688,8 +686,7 @@ class WorkersMissing_Subdivision_Update(UpdateView):
         return reverse('workers_missing_subdivision', kwargs={'subdivision_slug': self.kwargs['subdivision_slug']})
 
 
-class WorkersMissing_Department_Update(LoginRequiredMixin, WorkerMissingUpdateDepartmentPermissionsViewMixin,
-                                       UpdateView):
+class WorkersMissing_Department_Update(LoginRequiredMixin, UpdateView):
     model = WorkersMissing
     template_name = 'user/worker/planning/workersmissing_department_control.html'
     form_class = WorkersMissing_Department_Control
@@ -730,7 +727,7 @@ class WorkersMissing_Department_Update(LoginRequiredMixin, WorkerMissingUpdateDe
         return reverse('workers_missing_userHis', kwargs={'workers_slug': self.kwargs['workers_slug']})
 
 
-class WorkersMissing_UserHis_Update(LoginRequiredMixin, WorkerMissingHisPermissionsUpdateMixin, UpdateView):
+class WorkersMissing_UserHis_Update(LoginRequiredMixin,  UpdateView):
     model = WorkersMissing
     template_name = 'user/worker/planning/workersmissing_userhis_control.html'
     form_class = WorkersMissing_UserHis_Control

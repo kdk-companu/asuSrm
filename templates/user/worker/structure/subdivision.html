@@ -15,7 +15,7 @@
                     {{title}}
                 </h3>
                 <div class="bd-example m-0 float-right">
-                    {% if perms.workers.subdivision_add %}
+                    {% if perms.workers.Subdivision_add %}
                     <a type="submit" class="btn btn-success btn-xs " href="{% url 'subdivision_add' %}">
                         Добавить Управление/Подразделение</a>
                     {%endif%}
@@ -38,11 +38,11 @@
                         <td>{{subdivision.abbreviation}}</td>
                         <td>{{subdivision.description}}</td>
                         <td width="100px">
-                            {% if perms.workers.subdivision_change %}
+                            {% if perms.workers.Subdivision_change %}
                             <a class="btn btn-info btn-sm" href="{% url 'subdivision_update' subdivision.slug %}"><i
                                     class="fas fa-pencil-alt"></i></a>
                             {%endif%}
-                            {% if perms.workers.subdivision_delete %}
+                            {% if perms.workers.Subdivision_delete %}
                             <a class="remove-subdivision btn btn-danger btn-sm" data-toggle="modal"
                                data-target="#modal-default" data-slug="{{subdivision.slug}}"
                                data-text="{{subdivision.name}}"><i class="fas fa-trash"></i></a>

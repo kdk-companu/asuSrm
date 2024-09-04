@@ -15,7 +15,7 @@
                     {{title}}
                 </h3>
                 <div class="bd-example m-0 float-right">
-                    {% if perms.workers.department_add %}
+                    {% if perms.workers.Department_add %}
                     <a type="submit" class="btn btn-success btn-xs " href="{% url 'department_add' %}">
                         Добавить Структуру/Отдел</a>
                     {%endif%}
@@ -38,11 +38,11 @@
                         <td>{{department.abbreviation}}</td>
                         <td>{{department.description}}</td>
                         <td width="100px">
-                            {% if perms.workers.department_change %}
+                            {% if perms.workers.Department_change %}
                             <a class="btn btn-info btn-sm" href="{% url 'department_update' department.slug %}"><i
                                     class="fas fa-pencil-alt"></i></a>
                             {%endif%}
-                            {% if perms.workers.department_delete %}
+                            {% if perms.workers.Department_delete %}
                             <a class="remove-department btn btn-danger btn-sm" data-toggle="modal"
                                data-target="#modal-default" data-slug="{{department.slug}}"
                                data-text="{{department.name}}"><i class="fas fa-trash"></i></a>

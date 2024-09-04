@@ -13,11 +13,11 @@ from apps.workers.models import InformationMissing, InformationWeekendsHolidays,
 import datetime
 
 from library.table import Table
-from mixin.access.access import AccessProjectMixin
-from mixin.access.workers.workers_access import UserAccessMixin, UserAccessMixin_PlaningManagement
+from mixin.access.workers.planning import UserAccessMixin_PlaningManagement, UserAccessMixin
+from mixin.access.workers.workers import WorkersAccessMixin
 
 
-class InformationWeekendsHolidays_View(LoginRequiredMixin, AccessProjectMixin, ListView):
+class InformationWeekendsHolidays_View(LoginRequiredMixin, WorkersAccessMixin, ListView):
     """Информация о выходных днях и праздниках."""
     model = InformationWeekendsHolidays
     template_name = 'user/worker/planning/informationweekendsholidays_view.html'
@@ -48,7 +48,7 @@ class InformationWeekendsHolidays_View(LoginRequiredMixin, AccessProjectMixin, L
         return context
 
 
-class InformationWeekendsHolidays_Add(LoginRequiredMixin, AccessProjectMixin, CreateView):
+class InformationWeekendsHolidays_Add(LoginRequiredMixin, WorkersAccessMixin, CreateView):
     """Информация о выходных днях и праздниках."""
     model = InformationWeekendsHolidays
     template_name = 'user/worker/planning/informationweekendsholidays_control.html'
@@ -64,7 +64,7 @@ class InformationWeekendsHolidays_Add(LoginRequiredMixin, AccessProjectMixin, Cr
         return context
 
 
-class InformationWeekendsHolidays_Update(LoginRequiredMixin, AccessProjectMixin, UpdateView):
+class InformationWeekendsHolidays_Update(LoginRequiredMixin, WorkersAccessMixin, UpdateView):
     """Причины отсутствия на работе."""
     model = InformationWeekendsHolidays
     template_name = 'user/worker/planning/informationweekendsholidays_control.html'

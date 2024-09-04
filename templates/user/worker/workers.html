@@ -54,13 +54,13 @@
                     {{title}}
                 </h3>
                 <div class="bd-example m-0 float-right">
-                    {% if perms.workers.subdivision_view %}
+                    {% if perms.workers.Subdivision_view %}
                     <a type="submit" class="btn btn-primary btn-xs " href="{% url 'subdivision'%}">Настройки управлений</a>
                     {%endif%}
-                    {% if perms.workers.department_view %}
+                    {% if perms.workers.Department_view %}
                     <a type="submit" class="btn btn-primary btn-xs " href="{% url 'department'%}">Настройки отделов</a>
                     {%endif%}
-                    {% if perms.workers.chief_view %}
+                    {% if perms.workers.Chief_view %}
                     <a type="submit" class="btn btn-primary btn-xs " href="{% url 'chief'%}">Настройки должностей</a>
                     {%endif%}
                     {% if perms.workers.Worker_add%}
