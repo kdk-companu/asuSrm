@@ -6,8 +6,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 
-
-
 AUTH_USER_MODEL = 'workers.UserBasic'
 
 # Application definition
