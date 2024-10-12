@@ -4,8 +4,6 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-
 AUTH_USER_MODEL = 'workers.UserBasic'
 
 # Application definition
@@ -19,7 +17,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'apps.workers.apps.WorkersConfig',
     'apps.workobjects.apps.WorkobjectsConfig',
-    "debug_toolbar",
+    # "debug_toolbar",
 ]
 
 MIDDLEWARE = [
@@ -30,7 +28,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
+    # "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 ROOT_URLCONF = 'settings.urls'
